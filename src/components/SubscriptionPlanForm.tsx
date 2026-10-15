@@ -1,10 +1,30 @@
-export default function SubscriptionPlanForm() {
+import { handleModal, handleDropdownChange, handleCRUD, handleForm } from '../utils/mockHandlers'
+
+interface SubscriptionPlanFormProps {
+  mode?: 'add' | 'edit'
+  initialData?: {
+    name: string
+    slug: string
+    type: 'Individual' | 'Mandal / Organization'
+    price: string
+    duration: string
+    description: string
+    features: string[]
+    status: string
+    sortOrder: string
+  }
+}
+
+export default function SubscriptionPlanForm({ mode = 'add', initialData }: SubscriptionPlanFormProps) {
+
   return (
     <div className="bg-white border border-[rgba(226,232,240,0.8)] rounded-xl p-[21px] flex flex-col gap-4 shadow-[0px_1px_1px_rgba(0,0,0,0.05)]">
       {/* Header */}
       <div className="pb-[13px] border-b border-[#f1f5f9] flex items-center justify-between pr-[0.01px]">
-        <h2 className="text-sm font-semibold text-[#1e293b] leading-5">Add / Edit Subscription Plan</h2>
-        <button className="text-lg text-[#94a3b8] leading-[18px]">×</button>
+        <h2 className="text-sm font-semibold text-[#1e293b] leading-5">
+          {mode === 'edit' ? 'Edit Subscription Plan' : 'Add Subscription Plan'}
+        </h2>
+        <button onClick={() => handleModal.close()} className="text-lg text-[#94a3b8] leading-[18px]">×</button>
       </div>
 
       {/* Form */}
@@ -16,7 +36,8 @@ export default function SubscriptionPlanForm() {
           </label>
           <input
             type="text"
-            value="Mandal Plan – 100 Accounts"
+            defaultValue={mode === 'edit' ? initialData?.name : ''}
+            placeholder="Enter plan name"
             className="h-10 px-[13px] py-[9px] border border-[#e2e8f0] rounded-lg text-xs text-[#1e293b] leading-4 focus:outline-none focus:border-[#7f28bc]"
           />
         </div>
@@ -28,7 +49,8 @@ export default function SubscriptionPlanForm() {
           </label>
           <input
             type="text"
-            value="mandal-plan-100"
+            defaultValue={mode === 'edit' ? initialData?.slug : ''}
+            placeholder="plan-slug"
             className="h-10 px-[13px] py-[9px] border border-[#e2e8f0] rounded-lg text-xs text-[#1e293b] leading-4 focus:outline-none focus:border-[#7f28bc]"
           />
         </div>
@@ -40,13 +62,23 @@ export default function SubscriptionPlanForm() {
           </label>
           <div className="flex items-center gap-[19px] h-4">
             <label className="flex items-center gap-[6px] cursor-pointer">
-              <div className="w-4 h-4 border border-[#cbd5e1] rounded-full bg-white"></div>
+              <input
+                type="radio"
+                name="planType"
+                value="Individual"
+                defaultChecked={mode === 'add' || initialData?.type === 'Individual'}
+                className="w-4 h-4"
+              />
               <span className="text-xs text-[#334155] leading-4">Individual</span>
             </label>
             <label className="flex items-center gap-[5px] cursor-pointer">
-              <div className="w-[18px] h-[18px] bg-[#4f1787] border border-transparent rounded-full flex items-center justify-center p-px">
-                <img src="/icons/radio-selected.svg" alt="" className="w-4 h-4" />
-              </div>
+              <input
+                type="radio"
+                name="planType"
+                value="Mandal / Organization"
+                defaultChecked={mode === 'edit' && initialData?.type === 'Mandal / Organization'}
+                className="w-4 h-4"
+              />
               <span className="text-xs font-medium text-[#334155] leading-4">Mandal / Organization</span>
             </label>
           </div>
@@ -60,7 +92,8 @@ export default function SubscriptionPlanForm() {
             </label>
             <input
               type="text"
-              value="14999"
+              defaultValue={mode === 'edit' ? initialData?.price : ''}
+              placeholder="0"
               className="h-10 px-[13px] py-[9px] border border-[#e2e8f0] rounded-lg text-xs text-[#1e293b] leading-4 focus:outline-none focus:border-[#7f28bc]"
             />
           </div>
@@ -69,7 +102,7 @@ export default function SubscriptionPlanForm() {
               Duration <span className="text-[#ef4444]">*</span>
             </label>
             <div className="relative">
-              <select className="w-full h-10 pl-[13px] pr-[41px] py-[9px] border border-[#e2e8f0] rounded-lg text-xs text-[#1e293b] leading-4 appearance-none focus:outline-none focus:border-[#7f28bc]">
+              <select onChange={(e) => handleDropdownChange('Duration', e.target.value)} className="w-full h-10 pl-[13px] pr-[41px] py-[9px] border border-[#e2e8f0] rounded-lg text-xs text-[#1e293b] leading-4 appearance-none focus:outline-none focus:border-[#7f28bc]">
                 <option>1 Year</option>
                 <option>1 Month</option>
                 <option>48 Hours</option>
@@ -89,7 +122,8 @@ export default function SubscriptionPlanForm() {
             Plan Description <span className="text-[#ef4444]">*</span>
           </label>
           <textarea
-            value="Perfect for established Marathi Mandals. 100 member accounts with full access to mandal content."
+            defaultValue={mode === 'edit' ? initialData?.description : ''}
+            placeholder="Enter plan description"
             rows={3}
             className="px-[13px] py-[9px] border border-[#e2e8f0] rounded-lg text-xs text-[#1e293b] leading-[19.5px] resize-none focus:outline-none focus:border-[#7f28bc]"
           />
@@ -101,14 +135,7 @@ export default function SubscriptionPlanForm() {
             Features <span className="text-[#ef4444]">*</span>
           </label>
           <div className="flex flex-col gap-[6px]">
-            {[
-              '100 member accounts',
-              'Access to mandal content',
-              'Admin dashboard',
-              'Usage reports',
-              'Priority support',
-              'Dedicated account manager',
-            ].map((feature, idx) => (
+            {(mode === 'edit' && initialData?.features ? initialData.features : []).map((feature, idx) => (
               <div key={idx} className="h-10 px-[11px] py-[7px] bg-white border border-[#e2e8f0] rounded-lg flex items-center gap-2">
                 <input
                   type="text"
@@ -121,7 +148,7 @@ export default function SubscriptionPlanForm() {
               </div>
             ))}
           </div>
-          <button className="w-full px-px py-[9px] border border-dashed border-[#7f28bc] rounded-lg flex items-center justify-center gap-1 hover:bg-[#faf5ff]">
+          <button onClick={() => handleCRUD.create('Feature')} className="w-full px-px py-[9px] border border-dashed border-[#7f28bc] rounded-lg flex items-center justify-center gap-1 hover:bg-[#faf5ff]">
             <span className="text-sm font-bold text-[#7f28bc] leading-[14px]">+</span>
             <span className="text-xs font-semibold text-[#7f28bc] leading-4">Add Feature</span>
           </button>
@@ -132,7 +159,7 @@ export default function SubscriptionPlanForm() {
           <div className="flex-1 flex flex-col gap-1">
             <label className="text-xs font-semibold text-[#334155] leading-4">Status</label>
             <div className="relative">
-              <select className="w-full h-10 pl-[13px] pr-[41px] py-[9px] border border-[#e2e8f0] rounded-lg text-xs text-[#1e293b] leading-4 appearance-none focus:outline-none focus:border-[#7f28bc]">
+              <select onChange={(e) => handleDropdownChange('Status', e.target.value)} className="w-full h-10 pl-[13px] pr-[41px] py-[9px] border border-[#e2e8f0] rounded-lg text-xs text-[#1e293b] leading-4 appearance-none focus:outline-none focus:border-[#7f28bc]">
                 <option>Active</option>
                 <option>Inactive</option>
                 <option>Upcoming</option>
@@ -148,7 +175,8 @@ export default function SubscriptionPlanForm() {
             <label className="text-xs font-semibold text-[#334155] leading-4">Sort Order</label>
             <input
               type="text"
-              value="4"
+              defaultValue={mode === 'edit' ? initialData?.sortOrder : ''}
+              placeholder="0"
               className="h-10 px-[13px] py-[9px] border border-[#e2e8f0] rounded-lg text-xs text-[#1e293b] leading-4 focus:outline-none focus:border-[#7f28bc]"
             />
           </div>
@@ -156,11 +184,11 @@ export default function SubscriptionPlanForm() {
 
         {/* Action Buttons */}
         <div className="flex items-center justify-end gap-3 pt-[17px] border-t border-[#f1f5f9]">
-          <button className="flex-1 px-[17px] py-[9px] border border-[#e2e8f0] rounded-lg text-xs font-semibold text-[#334155] leading-4 hover:bg-gray-50">
+          <button onClick={() => handleForm.cancel()} className="flex-1 px-[17px] py-[9px] border border-[#e2e8f0] rounded-lg text-xs font-semibold text-[#334155] leading-4 hover:bg-gray-50">
             Cancel
           </button>
-          <button className="flex-1 px-4 py-2 bg-[#4f1787] rounded-lg text-xs font-semibold text-white leading-4 shadow-[0px_1px_1px_rgba(0,0,0,0.05)] hover:bg-[#6d1fa3]">
-            Save Plan
+          <button onClick={() => handleForm.submit('Subscription Plan')} className="flex-1 px-4 py-2 bg-[#4f1787] rounded-lg text-xs font-semibold text-white leading-4 shadow-[0px_1px_1px_rgba(0,0,0,0.05)] hover:bg-[#6d1fa3]">
+            {mode === 'edit' ? 'Update Plan' : 'Save Plan'}
           </button>
         </div>
       </div>

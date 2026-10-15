@@ -1,27 +1,83 @@
+import { useState } from 'react'
+import { handlePagination, handleTab } from '../utils/mockHandlers'
+import { ActionMenu, DeleteConfirmModal } from './shared'
+import ViewOrderModal from './ViewOrderModal'
+
+interface Order {
+  id: string
+  user: { name: string; email: string; initials: string }
+  type: string
+  item: { title: string; subtitle: string; badge: string }
+  amount: string
+  date: { date: string; time: string }
+  status: string
+  payment: string
+}
+
+const initialOrders: Order[] = Array(5).fill(null).map((_, idx) => ({
+  id: `#NM00051${idx + 2}`,
+  user: { name: 'Priya Kulkarni', email: 'priya@mmnj.org', initials: 'PK' },
+  type: 'Individual',
+  item: { title: 'Hello Inspector', subtitle: 'Video Purchase', badge: 'Hello' },
+  amount: '₹149',
+  date: { date: '12 Aug 2025', time: '10:32 AM' },
+  status: 'Completed',
+  payment: 'Razorpay',
+}))
+
 export default function OrdersTable() {
-  const orders = Array(5).fill({
-    id: '#NM000512',
-    user: { name: 'Priya Kulkarni', email: 'priya@mmnj.org', initials: 'PK' },
-    type: 'Individual',
-    item: { title: 'Hello Inspector', subtitle: 'Video Purchase', badge: 'Hello' },
-    amount: '₹149',
-    date: { date: '12 Aug 2025', time: '10:32 AM' },
-    status: 'Completed',
-    payment: 'Razorpay',
-  })
+  const [orders, setOrders] = useState<Order[]>(initialOrders)
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null)
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+  const [orderToDelete, setOrderToDelete] = useState<Order | null>(null)
+  const [viewModalOpen, setViewModalOpen] = useState(false)
+  const [orderToView, setOrderToView] = useState<Order | null>(null)
+
+  const handleEdit = (order: Order) => {
+    console.log('Edit order:', order)
+    alert(`Edit order: ${order.id}\n\nIn production, this would open an edit form with the order data pre-filled.`)
+  }
+
+  const handleView = (order: Order) => {
+    setOrderToView(order)
+    setViewModalOpen(true)
+    setOpenMenuId(null)
+  }
+
+  const handleDeleteClick = (order: Order) => {
+    setOrderToDelete(order)
+    setDeleteModalOpen(true)
+  }
+
+  const handleDeleteConfirm = () => {
+    if (orderToDelete) {
+      setOrders(orders.filter(o => o.id !== orderToDelete.id))
+      console.log('Deleted order:', orderToDelete)
+      setOrderToDelete(null)
+    }
+  }
 
   return (
     <div className="flex flex-col gap-4">
       {/* Tabs */}
       <div className="border-b border-[#e2e8f0]">
         <div className="flex items-start gap-7 px-5 pt-[14px] pb-px">
-          <button className="pb-[14px] border-b-2 border-[#7e22ce] text-sm font-semibold text-[#7e22ce] leading-4">
+          <button
+            onClick={() => handleTab.switch('All Purchases')}
+            className="pb-[14px] border-b-2 border-[#7e22ce] text-sm font-semibold text-[#7e22ce] leading-4 hover:opacity-80"
+          >
             All Purchases (28)
           </button>
-          <button className="pb-[13.5px] pt-0.5 text-sm font-semibold text-[#64748b] leading-4">
+          <button
+            onClick={() => handleTab.switch('Individual Purchases')}
+            className="pb-[13.5px] pt-0.5 text-sm font-semibold text-[#64748b] leading-4 hover:text-[#7e22ce]"
+          >
             Individual Purchases (438)
           </button>
-          <button className="pb-[13.5px] pt-0.5 text-sm font-semibold text-[#64748b] leading-4">
+          <button
+            onClick={() => handleTab.switch('Mandal Subscriptions')}
+            className="pb-[13.5px] pt-0.5 text-sm font-semibold text-[#64748b] leading-4 hover:text-[#7e22ce]"
+          >
             Mandal Subscriptions (74)
           </button>
         </div>
@@ -110,9 +166,33 @@ export default function OrdersTable() {
               <span className="text-xs text-[#475569] leading-4">{order.payment}</span>
             </div>
             <div className="w-[51px] px-2 flex items-center justify-center">
-              <button className="p-1">
-                <img src="/icons/three-dots-icon.svg" alt="" className="w-4 h-4" />
-              </button>
+              <div className="relative inline-block">
+                <button
+                  onClick={() => setOpenMenuId(openMenuId === order.id ? null : order.id)}
+                  className="p-1 hover:bg-gray-100 rounded"
+                >
+                  <img src="/icons/three-dots-icon.svg" alt="Actions" className="w-4 h-4" />
+                </button>
+                <ActionMenu
+                  isOpen={openMenuId === order.id}
+                  onClose={() => setOpenMenuId(null)}
+                  options={[
+                    {
+                      label: 'View Details',
+                      onClick: () => handleView(order),
+                    },
+                    {
+                      label: 'Edit Order',
+                      onClick: () => handleEdit(order),
+                    },
+                    {
+                      label: 'Delete',
+                      onClick: () => handleDeleteClick(order),
+                      className: 'text-[#ef4444] hover:bg-[#fef2f2]',
+                    },
+                  ]}
+                />
+              </div>
             </div>
           </div>
         ))}
@@ -121,20 +201,74 @@ export default function OrdersTable() {
         <div className="border-t border-[#f1f5f9] px-3 py-[12.5px] flex items-center justify-between">
           <span className="text-xs text-[#64748b] leading-4">Showing 1 to 10 of 512 orders</span>
           <div className="flex items-center gap-1">
-            <button className="w-7 h-7 border border-[#e2e8f0] rounded flex items-center justify-center p-px hover:bg-gray-50">
+            <button
+              onClick={handlePagination.previous}
+              className="w-7 h-7 border border-[#e2e8f0] rounded flex items-center justify-center p-px hover:bg-gray-50"
+            >
               <img src="/icons/chevron-left-small.svg" alt="" className="w-[14px] h-[14px]" />
             </button>
-            <button className="w-7 h-7 bg-[#7f28bc] rounded flex items-center justify-center text-xs font-semibold text-white leading-4">1</button>
-            <button className="w-7 h-7 rounded flex items-center justify-center text-xs text-[#475569] leading-4">2</button>
-            <button className="w-7 h-7 rounded flex items-center justify-center text-xs text-[#475569] leading-4">3</button>
-            <button className="w-7 h-7 rounded flex items-center justify-center text-xs text-[#475569] leading-4">4</button>
-            <button className="w-7 h-7 rounded flex items-center justify-center text-xs text-[#475569] leading-4">5</button>
-            <button className="w-7 h-7 border border-[#e2e8f0] rounded flex items-center justify-center p-px hover:bg-gray-50">
+            <button
+              onClick={() => handlePagination.goToPage(1)}
+              className="w-7 h-7 bg-[#7f28bc] rounded flex items-center justify-center text-xs font-semibold text-white leading-4"
+            >
+              1
+            </button>
+            <button
+              onClick={() => handlePagination.goToPage(2)}
+              className="w-7 h-7 rounded flex items-center justify-center text-xs text-[#475569] leading-4 hover:bg-gray-100"
+            >
+              2
+            </button>
+            <button
+              onClick={() => handlePagination.goToPage(3)}
+              className="w-7 h-7 rounded flex items-center justify-center text-xs text-[#475569] leading-4 hover:bg-gray-100"
+            >
+              3
+            </button>
+            <button
+              onClick={() => handlePagination.goToPage(4)}
+              className="w-7 h-7 rounded flex items-center justify-center text-xs text-[#475569] leading-4 hover:bg-gray-100"
+            >
+              4
+            </button>
+            <button
+              onClick={() => handlePagination.goToPage(5)}
+              className="w-7 h-7 rounded flex items-center justify-center text-xs text-[#475569] leading-4 hover:bg-gray-100"
+            >
+              5
+            </button>
+            <button
+              onClick={handlePagination.next}
+              className="w-7 h-7 border border-[#e2e8f0] rounded flex items-center justify-center p-px hover:bg-gray-50"
+            >
               <img src="/icons/chevron-right-small.svg" alt="" className="w-[14px] h-[14px]" />
             </button>
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={deleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false)
+          setOrderToDelete(null)
+        }}
+        onConfirm={handleDeleteConfirm}
+        title="Delete Order"
+        message="Are you sure you want to delete order"
+        itemName={orderToDelete?.id || ''}
+      />
+
+      {/* View Order Modal */}
+      <ViewOrderModal
+        isOpen={viewModalOpen}
+        onClose={() => {
+          setViewModalOpen(false)
+          setOrderToView(null)
+        }}
+        data={orderToView}
+      />
     </div>
   )
 }

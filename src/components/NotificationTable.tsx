@@ -1,32 +1,94 @@
+import { useState } from 'react'
+import { handleTab, handlePagination } from '../utils/mockHandlers'
+import { ActionMenu, DeleteConfirmModal } from './shared'
+import ViewNotificationModal from './ViewNotificationModal'
+
+interface Notification {
+  id: number
+  title: string
+  message: string
+  type: string
+  audience: string
+  audienceCount: string
+  date: string
+  time: string
+  status: string
+  delivered: string
+  read: string
+}
+
+const initialNotifications: Notification[] = Array(6).fill(null).map((_, idx) => ({
+  id: idx + 1,
+  title: 'New Play Released – Hello Inspector',
+  message: 'Watch our latest Marathi drama now...',
+  type: 'Push',
+  audience: 'All Users',
+  audienceCount: '(12,482)',
+  date: '20 Sep 2025',
+  time: '10:00 AM',
+  status: 'Sent',
+  delivered: '12,460',
+  read: '8,930',
+}))
+
 export default function NotificationTable() {
-  const notifications = Array(6).fill({
-    id: '01',
-    title: 'New Play Released – Hello Inspector',
-    message: 'Watch our latest Marathi drama now...',
-    type: 'Push',
-    audience: 'All Users',
-    audienceCount: '(12,482)',
-    date: '20 Sep 2025',
-    time: '10:00 AM',
-    status: 'Sent',
-    delivered: '12,460',
-    read: '8,930',
-  })
+  const [notifications, setNotifications] = useState<Notification[]>(initialNotifications)
+  const [openMenuId, setOpenMenuId] = useState<number | null>(null)
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+  const [notificationToDelete, setNotificationToDelete] = useState<Notification | null>(null)
+  const [viewModalOpen, setViewModalOpen] = useState(false)
+  const [notificationToView, setNotificationToView] = useState<Notification | null>(null)
+
+  const handleEdit = (notification: Notification) => {
+    console.log('Edit notification:', notification)
+    alert(`Edit notification: ${notification.title}\n\nIn production, this would open an edit form with the notification data pre-filled.`)
+  }
+
+  const handleView = (notification: Notification) => {
+    setNotificationToView(notification)
+    setViewModalOpen(true)
+    setOpenMenuId(null)
+  }
+
+  const handleDeleteClick = (notification: Notification) => {
+    setNotificationToDelete(notification)
+    setDeleteModalOpen(true)
+  }
+
+  const handleDeleteConfirm = () => {
+    if (notificationToDelete) {
+      setNotifications(notifications.filter(n => n.id !== notificationToDelete.id))
+      console.log('Deleted notification:', notificationToDelete)
+      setNotificationToDelete(null)
+    }
+  }
 
   return (
     <div className="flex flex-col gap-4">
       {/* Tabs */}
       <div className="border-b border-[#e2e8f0] flex items-start gap-6 pb-px">
-        <button className="pb-[14px] border-b-2 border-[#7f28bc] text-xs font-semibold text-[#7f28bc] leading-4">
+        <button
+          onClick={() => handleTab.switch('All Notifications')}
+          className="pb-[14px] border-b-2 border-[#7f28bc] text-xs font-semibold text-[#7f28bc] leading-4"
+        >
           All Notifications (124)
         </button>
-        <button className="pb-[14px] border-b-2 border-transparent text-xs font-semibold text-[#64748b] leading-4">
+        <button
+          onClick={() => handleTab.switch('Scheduled')}
+          className="pb-[14px] border-b-2 border-transparent text-xs font-semibold text-[#64748b] leading-4"
+        >
           Scheduled (12)
         </button>
-        <button className="pb-[14px] border-b-2 border-transparent text-xs font-semibold text-[#64748b] leading-4">
+        <button
+          onClick={() => handleTab.switch('Sent')}
+          className="pb-[14px] border-b-2 border-transparent text-xs font-semibold text-[#64748b] leading-4"
+        >
           Sent (98)
         </button>
-        <button className="pb-[14px] border-b-2 border-transparent text-xs font-semibold text-[#64748b] leading-4">
+        <button
+          onClick={() => handleTab.switch('Drafts')}
+          className="pb-[14px] border-b-2 border-transparent text-xs font-semibold text-[#64748b] leading-4"
+        >
           Drafts (8)
         </button>
       </div>
@@ -109,9 +171,33 @@ export default function NotificationTable() {
               </div>
             </div>
             <div className="flex-1 px-3 flex items-center justify-center">
-              <button className="p-1">
-                <img src="/icons/three-dots-icon.svg" alt="" className="w-4 h-4" />
-              </button>
+              <div className="relative inline-block">
+                <button
+                  onClick={() => setOpenMenuId(openMenuId === notif.id ? null : notif.id)}
+                  className="p-1 hover:bg-gray-100 rounded transition-colors"
+                >
+                  <img src="/icons/three-dots-icon.svg" alt="Actions" className="w-4 h-4" />
+                </button>
+                <ActionMenu
+                  isOpen={openMenuId === notif.id}
+                  onClose={() => setOpenMenuId(null)}
+                  options={[
+                    {
+                      label: 'View Details',
+                      onClick: () => handleView(notif),
+                    },
+                    {
+                      label: 'Edit Notification',
+                      onClick: () => handleEdit(notif),
+                    },
+                    {
+                      label: 'Delete',
+                      onClick: () => handleDeleteClick(notif),
+                      className: 'text-[#ef4444] hover:bg-[#fef2f2]',
+                    },
+                  ]}
+                />
+              </div>
             </div>
           </div>
         ))}
@@ -121,27 +207,74 @@ export default function NotificationTable() {
           <span className="text-xs text-[#64748b] leading-4">Showing 1 to 10 of 124 notifications</span>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-1">
-              <button className="w-7 h-7 border border-[#e2e8f0] rounded flex items-center justify-center">
+              <button
+                onClick={handlePagination.previous}
+                className="w-7 h-7 border border-[#e2e8f0] rounded flex items-center justify-center hover:bg-gray-50 transition-colors"
+              >
                 <img src="/icons/chevron-left-small.svg" alt="" className="w-[14px] h-[14px]" />
               </button>
-              <button className="w-7 h-7 bg-[#7f28bc] rounded flex items-center justify-center text-xs font-bold text-white leading-4">
+              <button
+                onClick={() => handlePagination.goToPage(1)}
+                className="w-7 h-7 bg-[#7f28bc] rounded flex items-center justify-center text-xs font-bold text-white leading-4"
+              >
                 1
               </button>
-              <button className="w-7 h-7 rounded flex items-center justify-center text-xs text-[#475569] leading-4">2</button>
-              <button className="w-7 h-7 rounded flex items-center justify-center text-xs text-[#475569] leading-4">3</button>
-              <button className="w-7 h-7 rounded flex items-center justify-center text-xs text-[#475569] leading-4">4</button>
-              <button className="w-7 h-7 rounded flex items-center justify-center text-xs text-[#475569] leading-4">5</button>
-              <button className="w-7 h-7 border border-[#e2e8f0] rounded flex items-center justify-center">
+              <button
+                onClick={() => handlePagination.goToPage(2)}
+                className="w-7 h-7 rounded flex items-center justify-center text-xs text-[#475569] leading-4 hover:bg-gray-50 transition-colors"
+              >2</button>
+              <button
+                onClick={() => handlePagination.goToPage(3)}
+                className="w-7 h-7 rounded flex items-center justify-center text-xs text-[#475569] leading-4 hover:bg-gray-50 transition-colors"
+              >3</button>
+              <button
+                onClick={() => handlePagination.goToPage(4)}
+                className="w-7 h-7 rounded flex items-center justify-center text-xs text-[#475569] leading-4 hover:bg-gray-50 transition-colors"
+              >4</button>
+              <button
+                onClick={() => handlePagination.goToPage(5)}
+                className="w-7 h-7 rounded flex items-center justify-center text-xs text-[#475569] leading-4 hover:bg-gray-50 transition-colors"
+              >5</button>
+              <button
+                onClick={handlePagination.next}
+                className="w-7 h-7 border border-[#e2e8f0] rounded flex items-center justify-center hover:bg-gray-50 transition-colors"
+              >
                 <img src="/icons/chevron-right-small.svg" alt="" className="w-[14px] h-[14px]" />
               </button>
             </div>
-            <button className="bg-white border border-[#e2e8f0] rounded-lg px-[11px] py-[5px] flex items-center gap-1">
+            <button
+              onClick={() => handlePagination.changePageSize(10)}
+              className="bg-white border border-[#e2e8f0] rounded-lg px-[11px] py-[5px] flex items-center gap-1 hover:bg-gray-50 transition-colors"
+            >
               <span className="text-xs text-[#334155] leading-4">10 / page</span>
               <img src="/icons/dropdown-arrow-gray.svg" alt="" className="w-[18px] h-[18px]" />
             </button>
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={deleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false)
+          setNotificationToDelete(null)
+        }}
+        onConfirm={handleDeleteConfirm}
+        title="Delete Notification"
+        message="Are you sure you want to delete notification"
+        itemName={notificationToDelete?.title || ''}
+      />
+
+      {/* View Notification Modal */}
+      <ViewNotificationModal
+        isOpen={viewModalOpen}
+        onClose={() => {
+          setViewModalOpen(false)
+          setNotificationToView(null)
+        }}
+        data={notificationToView}
+      />
     </div>
   )
 }

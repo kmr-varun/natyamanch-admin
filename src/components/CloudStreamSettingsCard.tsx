@@ -1,4 +1,15 @@
-export default function CloudStreamSettingsCard() {
+import { handleClick, handleDropdownChange } from '../utils/mockHandlers'
+
+interface CloudStreamSettingsCardProps {
+  mode?: 'add' | 'edit'
+  initialData?: {
+    videoId: string
+    playbackPolicy: string
+  }
+}
+
+export default function CloudStreamSettingsCard({ mode = 'add', initialData }: CloudStreamSettingsCardProps) {
+
   return (
     <div className="bg-white rounded-xl border border-[#e2e8f0] p-[21px] flex flex-col gap-4">
       {/* Header */}
@@ -24,24 +35,27 @@ export default function CloudStreamSettingsCard() {
           <div className="flex-1 relative">
             <input
               type="text"
-              defaultValue="f3a9b2c1-6d4e-4a2b..."
+              defaultValue={mode === 'edit' ? initialData?.videoId : ''}
+              placeholder="Enter CloudStream video ID"
               className="w-full h-10 px-[13px] py-2 bg-[#f8fafc] border border-[#e2e8f0] rounded-lg text-xs text-[#334155] font-mono focus:outline-none focus:border-[#7f28bc]"
             />
-            {/* Connected Badge & Edit Icon */}
-            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
-              <div className="flex items-center gap-1 px-2 py-0.5 bg-[#ecfdf5] border border-[#a7f3d0] rounded-md">
-                <img src="/icons/check-small.svg" alt="" className="w-[7.875px] h-[5.625px]" />
-                <span className="text-[10px] font-medium text-[#047857] leading-[15px]">
-                  Connected
-                </span>
+            {/* Connected Badge & Edit Icon - Only show in edit mode */}
+            {mode === 'edit' && initialData?.videoId && (
+              <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
+                <div className="flex items-center gap-1 px-2 py-0.5 bg-[#ecfdf5] border border-[#a7f3d0] rounded-md">
+                  <img src="/icons/check-small.svg" alt="" className="w-[7.875px] h-[5.625px]" />
+                  <span className="text-[10px] font-medium text-[#047857] leading-[15px]">
+                    Connected
+                  </span>
+                </div>
+                <button className="p-0.5">
+                  <img src="/icons/edit-icon.svg" alt="" className="w-[7.5px] h-[7.5px]" />
+                </button>
               </div>
-              <button className="p-0.5">
-                <img src="/icons/edit-icon.svg" alt="" className="w-[7.5px] h-[7.5px]" />
-              </button>
-            </div>
+            )}
           </div>
           {/* Stream Preview Button */}
-          <button className="flex items-center gap-1.5 h-10 px-3 bg-[#7f28bc] rounded-lg text-xs font-medium text-white hover:bg-[#6d1fa3] transition-colors">
+          <button onClick={() => handleClick('Stream Preview')} className="flex items-center gap-1.5 h-10 px-3 bg-[#7f28bc] rounded-lg text-xs font-medium text-white hover:bg-[#6d1fa3] transition-colors">
             <img src="/icons/play-circle.svg" alt="" className="w-[7.5px] h-[8.76px]" />
             Stream Preview
           </button>
@@ -54,7 +68,7 @@ export default function CloudStreamSettingsCard() {
           Playback Policy
         </label>
         <div className="relative h-10">
-          <select className="w-full h-full px-[13px] py-2 bg-white border border-[#e2e8f0] rounded-lg text-xs text-[#334155] appearance-none focus:outline-none focus:border-[#7f28bc]">
+          <select onChange={(e) => handleDropdownChange('Playback Policy', e.target.value)} className="w-full h-full px-[13px] py-2 bg-white border border-[#e2e8f0] rounded-lg text-xs text-[#334155] appearance-none focus:outline-none focus:border-[#7f28bc]">
             <option>Domain Restricted (Recommended)</option>
             <option>Public</option>
             <option>Private</option>
@@ -134,7 +148,7 @@ export default function CloudStreamSettingsCard() {
               <span className="text-[11px] font-medium text-[#334155] leading-[16.5px]">
                 USA
               </span>
-              <button className="text-[11px] font-medium text-[#94a3b8] leading-[16.5px]">
+              <button onClick={() => handleClick('Remove USA')} className="text-[11px] font-medium text-[#94a3b8] leading-[16.5px]">
                 ×
               </button>
             </div>
@@ -142,7 +156,7 @@ export default function CloudStreamSettingsCard() {
               <span className="text-[11px] font-medium text-[#334155] leading-[16.5px]">
                 Canada
               </span>
-              <button className="text-[11px] font-medium text-[#94a3b8] leading-[16.5px]">
+              <button onClick={() => handleClick('Remove Canada')} className="text-[11px] font-medium text-[#94a3b8] leading-[16.5px]">
                 ×
               </button>
             </div>
@@ -150,7 +164,7 @@ export default function CloudStreamSettingsCard() {
               <span className="text-[11px] font-medium text-[#334155] leading-[16.5px]">
                 UAE
               </span>
-              <button className="text-[11px] font-medium text-[#94a3b8] leading-[16.5px]">
+              <button onClick={() => handleClick('Remove UAE')} className="text-[11px] font-medium text-[#94a3b8] leading-[16.5px]">
                 ×
               </button>
             </div>

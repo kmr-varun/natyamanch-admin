@@ -1,4 +1,7 @@
+import { handleMedia, handleDropdownChange } from '../utils/mockHandlers'
+
 export default function SettingsBranding() {
+
   return (
     <div className="bg-white border border-[rgba(226,232,240,0.9)] shadow-sm rounded-xl p-[21px] flex flex-col gap-[14px]">
       {/* Card Header */}
@@ -30,7 +33,7 @@ export default function SettingsBranding() {
               <img src="/logo.svg" alt="Favicon" className="h-full object-contain" />
             </div>
             <div className="flex flex-col gap-1 items-end">
-              <button className="border border-[#7f28bc] rounded-lg px-[11px] py-[7px] w-[134px] text-xs font-semibold text-[#7f28bc] leading-4">
+              <button onClick={() => handleMedia.change('logo')} className="border border-[#7f28bc] rounded-lg px-[11px] py-[7px] w-[134px] text-xs font-semibold text-[#7f28bc] leading-4">
                 Change Logo
               </button>
               <span className="text-[9.5px] text-[#94a3b8] leading-[11.88px] text-right w-[188px]">
@@ -74,7 +77,7 @@ export default function SettingsBranding() {
       <div className="flex flex-col gap-1">
         <label className="text-xs font-semibold text-[#334155] leading-4">Font Family</label>
         <div className="relative">
-          <select className="w-full h-10 bg-white border border-[#e2e8f0] rounded-lg px-[11px] py-[7px] text-xs text-[#1e293b] leading-4 appearance-none">
+          <select onChange={(e) => handleDropdownChange('Font Family', e.target.value)} className="w-full h-10 bg-white border border-[#e2e8f0] rounded-lg px-[11px] py-[7px] text-xs text-[#1e293b] leading-4 appearance-none">
             <option>Inter (Default)</option>
           </select>
           <img

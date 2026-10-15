@@ -26,7 +26,10 @@ const mockVideos = [
   },
 ]
 
+import { handleClick } from '../utils/mockHandlers'
+
 export default function PopularVideos() {
+
   return (
     <div className="bg-white rounded-lg shadow-sm border border-[#f1f5f9] p-4 flex flex-col gap-1.5">
       {/* Header */}
@@ -34,7 +37,7 @@ export default function PopularVideos() {
         <h2 className="text-base font-semibold text-[#1d1b20] leading-8">
           Popular Videos
         </h2>
-        <button className="flex items-center gap-0.5 text-[11px] font-bold text-[#7f28bc] tracking-[0.55px] leading-[14px] hover:underline">
+        <button onClick={() => handleClick('View All Videos')} className="flex items-center gap-0.5 text-[11px] font-bold text-[#7f28bc] tracking-[0.55px] leading-[14px] hover:underline">
           View all
           <img src="/icons/chevron-right.svg" alt="" className="w-[4.933px] h-2" />
         </button>
@@ -81,7 +84,7 @@ export default function PopularVideos() {
           Catalog Health:{' '}
           <span className="text-[#047857]">99.8% Available</span>
         </div>
-        <button className="text-xs font-semibold text-[#7f28bc] tracking-[0.55px] leading-[14px] hover:underline">
+        <button onClick={() => handleClick('Curate List')} className="text-xs font-semibold text-[#7f28bc] tracking-[0.55px] leading-[14px] hover:underline">
           Curate List
         </button>
       </div>

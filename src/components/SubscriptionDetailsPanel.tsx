@@ -1,10 +1,13 @@
+import { handleModal, handleCRUD, handleClick } from '../utils/mockHandlers'
+
 export default function SubscriptionDetailsPanel() {
+
   return (
     <div className="bg-white border border-[#e2e8f0] rounded-xl p-[21px] flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between pb-4 border-b border-[#f1f5f9]">
         <h2 className="text-sm font-semibold text-[#0f172a] leading-5">Subscription Details</h2>
-        <button className="p-1">
+        <button onClick={() => handleModal.close()} className="p-1">
           <img src="/icons/close-x-icon.svg" alt="" className="w-4 h-4" />
         </button>
       </div>
@@ -21,7 +24,7 @@ export default function SubscriptionDetailsPanel() {
             <p className="text-[11px] text-[#94a3b8] leading-[16.5px] pt-[3px]">+91 98987 65432</p>
           </div>
         </div>
-        <button className="px-[11px] py-[5px] border border-[#7f28bc] rounded-md flex items-center gap-1 text-xs font-semibold text-[#7f28bc] leading-[16.5px] hover:bg-[#faf5ff]">
+        <button onClick={() => handleCRUD.read('User')} className="px-[11px] py-[5px] border border-[#7f28bc] rounded-md flex items-center gap-1 text-xs font-semibold text-[#7f28bc] leading-[16.5px] hover:bg-[#faf5ff]">
           View User
           <img src="/icons/external-link-small.svg" alt="" className="w-3 h-3" />
         </button>
@@ -117,7 +120,7 @@ export default function SubscriptionDetailsPanel() {
             <span className="text-xs font-bold text-[#0f172a] leading-4">22</span>
           </div>
         </div>
-        <button className="w-full px-[13px] py-[9px] border border-[#e2e8f0] rounded-lg text-xs font-semibold text-[#334155] leading-4 hover:bg-gray-50">
+        <button onClick={() => handleClick('Manage Members')} className="w-full px-[13px] py-[9px] border border-[#e2e8f0] rounded-lg text-xs font-semibold text-[#334155] leading-4 hover:bg-gray-50">
           Manage Members
         </button>
       </div>
@@ -125,15 +128,15 @@ export default function SubscriptionDetailsPanel() {
       {/* Actions Section */}
       <div className="flex flex-col gap-2 pt-[14px]">
         <h3 className="text-xs font-semibold text-[#333] leading-[16.5px] tracking-[0.55px] uppercase">ACTIONS</h3>
-        <button className="w-full flex items-center gap-2.5 px-[13px] py-2 border border-[#e2e8f0] rounded-lg text-xs font-semibold text-[#334155] leading-4 hover:bg-gray-50">
+        <button onClick={() => handleCRUD.update('Subscription')} className="w-full flex items-center gap-2.5 px-[13px] py-2 border border-[#e2e8f0] rounded-lg text-xs font-semibold text-[#334155] leading-4 hover:bg-gray-50">
           <img src="/icons/calendar-extend-icon.svg" alt="" className="w-[15px] h-[14.222px]" />
           Extend Subscription
         </button>
-        <button className="w-full flex items-center gap-2.5 px-[13px] py-2 border border-[#e2e8f0] rounded-lg text-xs font-semibold text-[#334155] leading-4 hover:bg-gray-50">
+        <button onClick={() => handleClick('Change Plan')} className="w-full flex items-center gap-2.5 px-[13px] py-2 border border-[#e2e8f0] rounded-lg text-xs font-semibold text-[#334155] leading-4 hover:bg-gray-50">
           <img src="/icons/refresh-icon.svg" alt="" className="w-4 h-4" />
           Change Plan
         </button>
-        <button className="w-full flex items-center gap-2.5 px-[13px] py-2 bg-[rgba(255,241,242,0.5)] border border-[#fecdd3] rounded-lg text-xs font-semibold text-[#e11d48] leading-4 hover:bg-[#fff1f2]">
+        <button onClick={() => handleCRUD.delete('Subscription')} className="w-full flex items-center gap-2.5 px-[13px] py-2 bg-[rgba(255,241,242,0.5)] border border-[#fecdd3] rounded-lg text-xs font-semibold text-[#e11d48] leading-4 hover:bg-[#fff1f2]">
           <img src="/icons/trash-icon.svg" alt="" className="w-4 h-4" />
           Cancel Subscription
         </button>

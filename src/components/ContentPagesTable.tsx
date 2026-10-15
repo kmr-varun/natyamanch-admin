@@ -1,22 +1,78 @@
-export default function ContentPagesTable() {
-  const pages = Array(10).fill({
-    id: '01',
-    title: 'Home',
-    subtitle: 'Main landing page',
-    slug: '/',
-    date: '12 Sep 2025',
-    time: '10:30 AM',
-    status: 'Published',
-  })
+import { useState } from 'react'
+import { handlePagination, handleTab } from '../utils/mockHandlers'
+import { ActionMenu, DeleteConfirmModal } from './shared'
+import ViewContentModal from './ViewContentModal'
+
+interface Page {
+  id: number
+  title: string
+  subtitle: string
+  slug: string
+  date: string
+  time: string
+  status: string
+}
+
+const initialPages: Page[] = Array(10).fill(null).map((_, idx) => ({
+  id: idx + 1,
+  title: 'Home',
+  subtitle: 'Main landing page',
+  slug: '/',
+  date: '12 Sep 2025',
+  time: '10:30 AM',
+  status: 'Published',
+}))
+
+interface ContentPagesTableProps {
+  content?: any[]
+}
+
+export default function ContentPagesTable({ content }: ContentPagesTableProps = {}) {
+  const [pages, setPages] = useState<Page[]>(content || initialPages)
+  const [openMenuId, setOpenMenuId] = useState<number | null>(null)
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+  const [pageToDelete, setPageToDelete] = useState<Page | null>(null)
+  const [viewModalOpen, setViewModalOpen] = useState(false)
+  const [pageToView, setPageToView] = useState<Page | null>(null)
+
+  const handleEdit = (page: Page) => {
+    console.log('Edit page:', page)
+    alert(`Edit page: ${page.title}\n\nIn production, this would open an edit form with the page data pre-filled.`)
+  }
+
+  const handleView = (page: Page) => {
+    setPageToView(page)
+    setViewModalOpen(true)
+    setOpenMenuId(null)
+  }
+
+  const handleDeleteClick = (page: Page) => {
+    setPageToDelete(page)
+    setDeleteModalOpen(true)
+  }
+
+  const handleDeleteConfirm = () => {
+    if (pageToDelete) {
+      setPages(pages.filter(p => p.id !== pageToDelete.id))
+      console.log('Deleted page:', pageToDelete)
+      setPageToDelete(null)
+    }
+  }
 
   return (
     <div className="bg-white border border-[#e2e8f0] rounded-xl shadow-sm overflow-hidden p-px">
       {/* Tabs */}
       <div className="border-b border-[#e2e8f0] px-5 pt-3 pb-px flex items-center gap-6">
-        <button className="pb-[14px] border-b-2 border-[#7f28bc] text-sm font-semibold text-[#7f28bc] leading-4">
+        <button
+          onClick={() => handleTab.switch('Pages')}
+          className="pb-[14px] border-b-2 border-[#7f28bc] text-sm font-semibold text-[#7f28bc] leading-4 hover:opacity-80"
+        >
           Pages (18)
         </button>
-        <button className="pb-[14px] text-sm font-semibold text-[#64748b] leading-4">
+        <button
+          onClick={() => handleTab.switch('Popups')}
+          className="pb-[14px] text-sm font-semibold text-[#64748b] leading-4 hover:text-[#7f28bc]"
+        >
           Popups (6)
         </button>
       </div>
@@ -77,13 +133,36 @@ export default function ContentPagesTable() {
               </span>
             </div>
             <div className="flex-1 px-4 flex items-center justify-end gap-[6px]">
-              <button className="bg-white border border-[#e2e8f0] rounded-md px-[11px] py-[5px] flex items-center gap-1">
+              <button
+                onClick={() => handleEdit(page)}
+                className="bg-white border border-[#e2e8f0] rounded-md px-[11px] py-[5px] flex items-center gap-1 hover:bg-gray-50"
+              >
                 <img src="/icons/edit-pencil-icon.svg" alt="" className="w-3 h-3" />
                 <span className="text-[11px] font-medium text-[#334155] leading-4">Edit</span>
               </button>
-              <button className="p-1 rounded">
-                <img src="/icons/three-dots-icon.svg" alt="" className="w-[14px] h-[14px]" />
-              </button>
+              <div className="relative inline-block">
+                <button
+                  onClick={() => setOpenMenuId(openMenuId === page.id ? null : page.id)}
+                  className="p-1 rounded hover:bg-gray-100"
+                >
+                  <img src="/icons/three-dots-icon.svg" alt="Actions" className="w-[14px] h-[14px]" />
+                </button>
+                <ActionMenu
+                  isOpen={openMenuId === page.id}
+                  onClose={() => setOpenMenuId(null)}
+                  options={[
+                    {
+                      label: 'View Details',
+                      onClick: () => handleView(page),
+                    },
+                    {
+                      label: 'Delete',
+                      onClick: () => handleDeleteClick(page),
+                      className: 'text-[#ef4444] hover:bg-[#fef2f2]',
+                    },
+                  ]}
+                />
+              </div>
             </div>
           </div>
         ))}
@@ -93,20 +172,55 @@ export default function ContentPagesTable() {
       <div className="border-t border-[#e2e8f0] px-4 py-[16.5px] flex items-center justify-between">
         <span className="text-xs text-[#64748b] leading-4">Showing 1 to 10 of 18 pages</span>
         <div className="flex items-center gap-1">
-          <button className="w-7 h-7 border border-[#e2e8f0] rounded flex items-center justify-center p-px">
+          <button
+            onClick={handlePagination.previous}
+            className="w-7 h-7 border border-[#e2e8f0] rounded flex items-center justify-center p-px hover:bg-gray-50"
+          >
             <img src="/icons/chevron-left-small.svg" alt="" className="w-[14px] h-[14px]" />
           </button>
-          <button className="w-7 h-7 bg-[#7f28bc] rounded flex items-center justify-center text-xs font-semibold text-white leading-4">
+          <button
+            onClick={() => handlePagination.goToPage(1)}
+            className="w-7 h-7 bg-[#7f28bc] rounded flex items-center justify-center text-xs font-semibold text-white leading-4"
+          >
             1
           </button>
-          <button className="w-7 h-7 border border-[#e2e8f0] rounded flex items-center justify-center text-xs text-[#475569] leading-4">
+          <button
+            onClick={() => handlePagination.goToPage(2)}
+            className="w-7 h-7 border border-[#e2e8f0] rounded flex items-center justify-center text-xs text-[#475569] leading-4 hover:bg-gray-50"
+          >
             2
           </button>
-          <button className="w-7 h-7 border border-[#e2e8f0] rounded flex items-center justify-center p-px">
+          <button
+            onClick={handlePagination.next}
+            className="w-7 h-7 border border-[#e2e8f0] rounded flex items-center justify-center p-px hover:bg-gray-50"
+          >
             <img src="/icons/chevron-right-small.svg" alt="" className="w-[14px] h-[14px]" />
           </button>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={deleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false)
+          setPageToDelete(null)
+        }}
+        onConfirm={handleDeleteConfirm}
+        title="Delete Page"
+        message="Are you sure you want to delete page"
+        itemName={pageToDelete?.title || ''}
+      />
+
+      {/* View Content Modal */}
+      <ViewContentModal
+        isOpen={viewModalOpen}
+        onClose={() => {
+          setViewModalOpen(false)
+          setPageToView(null)
+        }}
+        data={pageToView}
+      />
     </div>
   )
 }

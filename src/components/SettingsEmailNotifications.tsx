@@ -1,4 +1,7 @@
+import { handleDropdownChange, handleClick } from '../utils/mockHandlers'
+
 export default function SettingsEmailNotifications() {
+
   return (
     <div className="bg-white border border-[rgba(226,232,240,0.9)] shadow-sm rounded-xl p-[21px] flex flex-col gap-4">
       {/* Card Header */}
@@ -39,7 +42,7 @@ export default function SettingsEmailNotifications() {
           <label className="text-xs font-semibold text-[#334155] leading-4">SMTP Provider</label>
           <div className="flex items-center gap-2">
             <div className="flex-1 relative">
-              <select className="w-full h-10 bg-white border border-[#e2e8f0] rounded-lg px-[11px] py-[7px] text-xs text-[#1e293b] leading-4 appearance-none">
+              <select onChange={(e) => handleDropdownChange('SMTP Provider', e.target.value)} className="w-full h-10 bg-white border border-[#e2e8f0] rounded-lg px-[11px] py-[7px] text-xs text-[#1e293b] leading-4 appearance-none">
                 <option>SendGrid</option>
               </select>
               <img
@@ -48,7 +51,7 @@ export default function SettingsEmailNotifications() {
                 className="absolute right-3 top-1/2 -translate-y-1/2 w-[18px] h-[18px] pointer-events-none"
               />
             </div>
-            <button className="h-10 bg-[rgba(250,245,255,0.5)] border border-[#e9d5ff] rounded-lg px-[9.1px] flex items-center gap-2 w-[141px]">
+            <button onClick={() => handleClick('Test SMTP Connection')} className="h-10 bg-[rgba(250,245,255,0.5)] border border-[#e9d5ff] rounded-lg px-[9.1px] flex items-center gap-2 w-[141px]">
               <div className="w-[19.799px] h-[19.799px] flex items-center justify-center rotate-45">
                 <img src="/icons/send-arrow-icon.svg" alt="" className="w-[14px] h-[14px]" />
               </div>

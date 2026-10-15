@@ -1,4 +1,7 @@
+import { handleDropdownChange } from '../utils/mockHandlers'
+
 export default function SettingsGeneral() {
+
   return (
     <div className="bg-white border border-[rgba(226,232,240,0.9)] shadow-sm rounded-xl p-[21px] flex flex-col gap-4">
       {/* Card Header */}
@@ -66,7 +69,7 @@ export default function SettingsGeneral() {
           <div className="flex flex-col gap-1">
             <label className="text-xs font-semibold text-[#334155] leading-4">Default Language</label>
             <div className="relative">
-              <select className="w-full h-10 bg-white border border-[#e2e8f0] rounded-lg px-[11px] py-[7px] text-xs text-[#1e293b] leading-4 appearance-none">
+              <select onChange={(e) => handleDropdownChange('Default Language', e.target.value)} className="w-full h-10 bg-white border border-[#e2e8f0] rounded-lg px-[11px] py-[7px] text-xs text-[#1e293b] leading-4 appearance-none">
                 <option>English</option>
               </select>
               <img
@@ -81,7 +84,7 @@ export default function SettingsGeneral() {
           <div className="flex flex-col gap-1">
             <label className="text-xs font-semibold text-[#334155] leading-4">Timezone</label>
             <div className="relative">
-              <select className="w-full h-10 bg-white border border-[#e2e8f0] rounded-lg px-[11px] py-[7px] text-xs text-[#1e293b] leading-4 appearance-none">
+              <select onChange={(e) => handleDropdownChange('Timezone', e.target.value)} className="w-full h-10 bg-white border border-[#e2e8f0] rounded-lg px-[11px] py-[7px] text-xs text-[#1e293b] leading-4 appearance-none">
                 <option>(GMT+05:30) India Standard Time</option>
               </select>
               <img

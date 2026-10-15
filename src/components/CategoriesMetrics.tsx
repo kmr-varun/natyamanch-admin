@@ -1,4 +1,10 @@
-export default function CategoriesMetrics() {
+interface CategoriesMetricsProps {
+  categories?: any[]
+}
+
+export default function CategoriesMetrics({ categories }: CategoriesMetricsProps = {}) {
+  const totalCount = categories?.length || 12
+  const activeCount = categories?.filter(c => c.status === 'Active').length || 10
   return (
     <div className="flex gap-2">
       {/* Total Categories */}
@@ -8,7 +14,7 @@ export default function CategoriesMetrics() {
         </div>
         <div className="flex flex-col gap-0.5">
           <span className="text-2xl font-bold text-[#1e293b] leading-8 tracking-[-0.6px]">
-            12
+            {totalCount}
           </span>
           <span className="text-xs font-medium text-[#64748b] leading-4">
             Total Categories
@@ -27,7 +33,7 @@ export default function CategoriesMetrics() {
         </div>
         <div className="flex flex-col gap-0.5">
           <span className="text-2xl font-bold text-[#1e293b] leading-8 tracking-[-0.6px]">
-            10
+            {activeCount}
           </span>
           <span className="text-xs font-medium text-[#64748b] leading-4">
             Active Categories

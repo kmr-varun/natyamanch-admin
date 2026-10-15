@@ -42,7 +42,10 @@ const mockOrders = [
   },
 ]
 
+import { handleClick } from '../utils/mockHandlers'
+
 export default function RecentOrdersTable() {
+
   return (
     <div className="bg-white rounded-lg shadow-sm border border-[#f1f5f9] p-4 flex flex-col justify-between">
       {/* Header */}
@@ -51,7 +54,7 @@ export default function RecentOrdersTable() {
           <h2 className="text-base font-semibold text-[#1d1b20] leading-8">
             Recent Orders
           </h2>
-          <button className="flex items-center gap-0.5 text-[11px] font-semibold text-[#7f28bc] tracking-[0.55px] leading-[14px] hover:underline">
+          <button onClick={() => handleClick('View All Orders')} className="flex items-center gap-0.5 text-[11px] font-semibold text-[#7f28bc] tracking-[0.55px] leading-[14px] hover:underline">
             View all
             <img src="/icons/chevron-right.svg" alt="" className="w-[4.933px] h-2" />
           </button>

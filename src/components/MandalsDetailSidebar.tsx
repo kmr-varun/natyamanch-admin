@@ -1,4 +1,7 @@
+import { handleClick, handleCRUD } from '../utils/mockHandlers'
+
 export default function MandalsDetailSidebar() {
+
   return (
     <div className="bg-white border border-[rgba(226,232,240,0.9)] rounded-xl p-[17px] flex flex-col gap-1 shadow-[0px_1px_1px_rgba(0,0,0,0.05)]">
       {/* Organization Name & Status */}
@@ -82,7 +85,7 @@ export default function MandalsDetailSidebar() {
           <div className="h-full w-[78%] bg-gradient-to-r from-[#7e22ce] to-[#4f46e5] rounded-full"></div>
         </div>
         <span className="text-[10.5px] text-[#94a3b8] leading-4 pb-[6px]">22 seats available</span>
-        <button className="w-full px-[13px] py-[9px] border border-[#e2e8f0] rounded-lg flex items-center justify-center gap-[6px] hover:bg-gray-50">
+        <button onClick={() => handleClick('Manage Members')} className="w-full px-[13px] py-[9px] border border-[#e2e8f0] rounded-lg flex items-center justify-center gap-[6px] hover:bg-gray-50">
           <span className="text-xs font-semibold text-[#334155] leading-4">Manage Members</span>
           <img src="/icons/arrow-right-small.svg" alt="" className="w-[8.285px] h-[3.281px]" />
         </button>
@@ -120,19 +123,19 @@ export default function MandalsDetailSidebar() {
           <h3 className="text-sm font-semibold text-[#1e293b] leading-4">Actions</h3>
         </div>
         <div className="flex flex-col gap-2">
-          <button className="w-full px-[13px] py-[9px] border border-[#e2e8f0] rounded-lg flex items-center gap-2 hover:bg-gray-50">
+          <button onClick={() => handleClick('View Orders')} className="w-full px-[13px] py-[9px] border border-[#e2e8f0] rounded-lg flex items-center gap-2 hover:bg-gray-50">
             <img src="/icons/receipt-icon.svg" alt="" className="w-4 h-4" />
             <span className="text-xs font-semibold text-[#334155] leading-4">View Orders</span>
           </button>
-          <button className="w-full px-[13px] py-[9px] border border-[#e2e8f0] rounded-lg flex items-center gap-2 hover:bg-gray-50">
+          <button onClick={() => handleCRUD.update('Plan')} className="w-full px-[13px] py-[9px] border border-[#e2e8f0] rounded-lg flex items-center gap-2 hover:bg-gray-50">
             <img src="/icons/calendar-up-icon.svg" alt="" className="w-4 h-4" />
             <span className="text-xs font-semibold text-[#334155] leading-4">Extend / Upgrade Plan</span>
           </button>
-          <button className="w-full px-[13px] py-[9px] border border-[#e2e8f0] rounded-lg flex items-center gap-2 hover:bg-gray-50">
+          <button onClick={() => handleClick('Suspend Organization')} className="w-full px-[13px] py-[9px] border border-[#e2e8f0] rounded-lg flex items-center gap-2 hover:bg-gray-50">
             <img src="/icons/pause-circle-icon.svg" alt="" className="w-4 h-4" />
             <span className="text-xs font-semibold text-[#334155] leading-4">Suspend Organization</span>
           </button>
-          <button className="w-full px-[13px] py-[9px] border border-[#fecaca] rounded-lg flex items-center gap-2 hover:bg-red-50">
+          <button onClick={() => handleCRUD.delete('Organization')} className="w-full px-[13px] py-[9px] border border-[#fecaca] rounded-lg flex items-center gap-2 hover:bg-red-50">
             <img src="/icons/trash-red-icon.svg" alt="" className="w-4 h-4" />
             <span className="text-xs font-semibold text-[#dc2626] leading-4">Deactivate Organization</span>
           </button>

@@ -1,10 +1,13 @@
+import { handleModal, handleCRUD } from '../utils/mockHandlers'
+
 export default function OrderDetailsPanel() {
+
   return (
     <div className="bg-white border border-[#e2e8f0] rounded-xl p-[21px] flex flex-col gap-5">
       {/* Header */}
       <div className="border-b border-[#f1f5f9] pb-[13px] flex items-center justify-between pr-[0.01px]">
         <h2 className="text-sm font-bold text-[#0f172a] leading-5">Order Details</h2>
-        <button className="w-4 h-4">
+        <button onClick={() => handleModal.close()} className="w-4 h-4">
           <img src="/icons/close-x-icon.svg" alt="" className="w-full h-full" />
         </button>
       </div>
@@ -101,7 +104,7 @@ export default function OrderDetailsPanel() {
       </div>
 
       {/* View User Profile Button */}
-      <button className="bg-[#7f28bc] rounded-lg px-4 py-2.5 flex items-center justify-center gap-2 hover:bg-[#6d1fa3]">
+      <button onClick={() => handleCRUD.read('User Profile')} className="bg-[#7f28bc] rounded-lg px-4 py-2.5 flex items-center justify-center gap-2 hover:bg-[#6d1fa3]">
         <img src="/icons/user-profile-icon.svg" alt="" className="w-4 h-4" />
         <span className="text-xs font-semibold text-white leading-4">View User Profile</span>
       </button>

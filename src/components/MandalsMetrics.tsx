@@ -1,4 +1,10 @@
-export default function MandalsMetrics() {
+interface MandalsMetricsProps {
+  mandals?: any[]
+}
+
+export default function MandalsMetrics({ mandals }: MandalsMetricsProps = {}) {
+  const totalCount = mandals?.length || 28
+  const activeCount = mandals?.filter(m => m.status === 'Active').length || 24
   return (
     <div className="flex gap-2">
       {/* Total Organizations */}
@@ -7,7 +13,7 @@ export default function MandalsMetrics() {
           <img src="/icons/mandal-building-icon.svg" alt="" className="w-[25.015px] h-[20.5px]" />
         </div>
         <div className="flex flex-col gap-[1.5px]">
-          <span className="text-2xl font-bold text-[#1e293b] leading-6">28</span>
+          <span className="text-2xl font-bold text-[#1e293b] leading-6">{totalCount}</span>
           <span className="text-xs font-semibold text-[#475569] leading-[15px] pt-[2.5px]">Total Organizations</span>
           <div className="flex items-center gap-0.5">
             <span className="text-[11px] font-medium text-[#059669] leading-[16.5px]">↑</span>
@@ -22,7 +28,7 @@ export default function MandalsMetrics() {
           <div className="w-4 h-4 bg-[#10b981] rounded-full shadow-[0px_0px_0px_4px_#d1fae5]"></div>
         </div>
         <div className="flex flex-col gap-[1.5px]">
-          <span className="text-2xl font-bold text-[#1e293b] leading-6">24</span>
+          <span className="text-2xl font-bold text-[#1e293b] leading-6">{activeCount}</span>
           <span className="text-xs font-semibold text-[#475569] leading-[15px] pt-[2.5px]">Active Mandals</span>
           <div className="flex items-center gap-0.5">
             <span className="text-[11px] font-medium text-[#059669] leading-[16.5px]">↑</span>

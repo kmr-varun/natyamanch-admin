@@ -1,12 +1,15 @@
+import { MetricCard } from './shared'
+
 export default function NotificationMetrics() {
   const metrics = [
     {
       title: 'Total Notifications',
       value: '124',
-      subtitle: '↑ +18% this month',
+      subtitle: '+18% this month',
       icon: '/icons/bell-notification-icon.svg',
       bgColor: 'bg-[#faf5ff]',
       textColor: 'text-[#059669]',
+      showArrow: true,
     },
     {
       title: 'Delivered',
@@ -15,6 +18,7 @@ export default function NotificationMetrics() {
       icon: '/icons/check-circle-icon.svg',
       bgColor: 'bg-[#ecfdf5]',
       textColor: 'text-[#64748b]',
+      showArrow: false,
     },
     {
       title: 'Read',
@@ -23,6 +27,7 @@ export default function NotificationMetrics() {
       icon: '/icons/eye-read-icon.svg',
       bgColor: 'bg-[#eff6ff]',
       textColor: 'text-[#64748b]',
+      showArrow: false,
     },
     {
       title: 'Failed',
@@ -31,27 +36,23 @@ export default function NotificationMetrics() {
       icon: '/icons/x-circle-icon.svg',
       bgColor: 'bg-[#fef2f2]',
       textColor: 'text-[#64748b]',
+      showArrow: false,
     },
   ]
 
   return (
     <div className="flex items-start gap-2">
       {metrics.map((metric, idx) => (
-        <div
+        <MetricCard
           key={idx}
-          className="flex-1 bg-white border border-[rgba(226,232,240,0.8)] rounded-xl px-2.5 py-[17px] flex items-center gap-2"
-        >
-          <div className={`w-12 h-12 ${metric.bgColor} rounded-xl flex items-center justify-center flex-shrink-0`}>
-            <img src={metric.icon} alt="" className="w-6 h-6" />
-          </div>
-          <div className="flex flex-col gap-0.5">
-            <span className="text-2xl font-bold text-[#0f172a] leading-6">{metric.value}</span>
-            <span className="text-xs text-[#64748b] leading-4 pt-0.5">{metric.title}</span>
-            <span className={`text-[11px] ${idx === 0 ? metric.textColor : 'text-[#64748b]'} leading-[16.5px]`}>
-              {metric.subtitle}
-            </span>
-          </div>
-        </div>
+          icon={metric.icon}
+          iconBg={metric.bgColor}
+          title={metric.title}
+          value={metric.value}
+          subtitle={metric.subtitle}
+          subtitleColor={metric.textColor}
+          showArrow={metric.showArrow}
+        />
       ))}
     </div>
   )

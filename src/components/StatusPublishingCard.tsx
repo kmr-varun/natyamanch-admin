@@ -1,4 +1,7 @@
+import { handleDropdownChange } from '../utils/mockHandlers'
+
 export default function StatusPublishingCard() {
+
   return (
     <div className="bg-white rounded-xl border border-[#e2e8f0] p-[21px] flex flex-col gap-4">
       {/* Header */}
@@ -14,7 +17,7 @@ export default function StatusPublishingCard() {
             Status
           </label>
           <div className="relative h-10">
-            <select className="w-full h-full px-[13px] py-2 bg-white border border-[#e2e8f0] rounded-lg text-xs text-[#334155] appearance-none focus:outline-none focus:border-[#7f28bc]">
+            <select onChange={(e) => handleDropdownChange('Status', e.target.value)} className="w-full h-full px-[13px] py-2 bg-white border border-[#e2e8f0] rounded-lg text-xs text-[#334155] appearance-none focus:outline-none focus:border-[#7f28bc]">
               <option>Draft</option>
               <option>Published</option>
               <option>Scheduled</option>

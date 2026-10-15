@@ -1,15 +1,15 @@
 import VideosFilterToolbar from '../components/VideosFilterToolbar'
 import VideosTable from '../components/VideosTable'
+import { PageContainer } from '../components/shared'
 
 export default function Videos() {
   return (
-    <div className="p-8">
+    <PageContainer>
       <VideosFilterToolbar />
 
-      {/* Videos Table */}
       <div className="pt-6">
         <VideosTable />
       </div>
-    </div>
+    </PageContainer>
   )
 }

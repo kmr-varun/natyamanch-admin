@@ -1,4 +1,19 @@
-export default function AdditionalDetailsCard() {
+import { handleDropdownChange, handleClick } from '../utils/mockHandlers'
+
+interface AdditionalDetailsCardProps {
+  mode?: 'add' | 'edit'
+  initialData?: {
+    releaseYear: string
+    director: string
+    writer: string
+    subtitles: string[]
+    ageRating: string
+    tags: string[]
+  }
+}
+
+export default function AdditionalDetailsCard({ mode = 'add', initialData }: AdditionalDetailsCardProps) {
+
   return (
     <div className="bg-white rounded-xl border border-[#e2e8f0] p-[21px] flex flex-col gap-4">
       {/* Header */}
@@ -15,7 +30,8 @@ export default function AdditionalDetailsCard() {
           </label>
           <input
             type="text"
-            defaultValue="2024"
+            defaultValue={mode === 'edit' ? initialData?.releaseYear : ''}
+            placeholder="YYYY"
             className="h-10 px-[13px] py-2 bg-white border border-[#e2e8f0] rounded-lg text-xs text-[#334155] focus:outline-none focus:border-[#7f28bc]"
           />
         </div>
@@ -27,7 +43,8 @@ export default function AdditionalDetailsCard() {
           </label>
           <input
             type="text"
-            defaultValue="Vijay Kenkre"
+            defaultValue={mode === 'edit' ? initialData?.director : ''}
+            placeholder="Enter director name"
             className="h-10 px-[13px] py-2 bg-white border border-[#e2e8f0] rounded-lg text-xs text-[#334155] focus:outline-none focus:border-[#7f28bc]"
           />
         </div>
@@ -39,7 +56,8 @@ export default function AdditionalDetailsCard() {
           </label>
           <input
             type="text"
-            defaultValue="Chetan Dattar"
+            defaultValue={mode === 'edit' ? initialData?.writer : ''}
+            placeholder="Enter writer name"
             className="h-10 px-[13px] py-2 bg-white border border-[#e2e8f0] rounded-lg text-xs text-[#334155] focus:outline-none focus:border-[#7f28bc]"
           />
         </div>
@@ -58,7 +76,7 @@ export default function AdditionalDetailsCard() {
               <span className="text-[11px] text-[#334155] leading-[16.5px]">
                 English
               </span>
-              <button className="text-[11px] text-[#94a3b8] leading-[16.5px]">
+              <button onClick={() => handleClick('Remove English subtitle')} className="text-[11px] text-[#94a3b8] leading-[16.5px]">
                 ×
               </button>
             </div>
@@ -68,7 +86,7 @@ export default function AdditionalDetailsCard() {
               <span className="text-[11px] text-[#334155] leading-[16.5px]">
                 Marathi (CC)
               </span>
-              <button className="text-[11px] text-[#94a3b8] leading-[16.5px]">
+              <button onClick={() => handleClick('Remove Marathi (CC) subtitle')} className="text-[11px] text-[#94a3b8] leading-[16.5px]">
                 ×
               </button>
             </div>
@@ -78,7 +96,7 @@ export default function AdditionalDetailsCard() {
               <span className="text-[11px] text-[#334155] leading-[16.5px]">
                 Hindi
               </span>
-              <button className="text-[11px] text-[#94a3b8] leading-[16.5px]">
+              <button onClick={() => handleClick('Remove Hindi subtitle')} className="text-[11px] text-[#94a3b8] leading-[16.5px]">
                 ×
               </button>
             </div>
@@ -91,7 +109,7 @@ export default function AdditionalDetailsCard() {
             Age Rating
           </label>
           <div className="relative h-10">
-            <select className="w-full h-full px-[13px] py-2 bg-white border border-[#e2e8f0] rounded-lg text-xs text-[#334155] appearance-none focus:outline-none focus:border-[#7f28bc]">
+            <select onChange={(e) => handleDropdownChange('Age Rating', e.target.value)} className="w-full h-full px-[13px] py-2 bg-white border border-[#e2e8f0] rounded-lg text-xs text-[#334155] appearance-none focus:outline-none focus:border-[#7f28bc]">
               <option>U/A 13+</option>
               <option>U</option>
               <option>U/A 7+</option>

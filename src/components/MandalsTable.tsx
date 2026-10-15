@@ -1,5 +1,23 @@
-export default function MandalsTable() {
-  const organizations = [
+import { useState } from 'react'
+import { handlePagination, handleTab } from '../utils/mockHandlers'
+import { ActionMenu, DeleteConfirmModal } from './shared'
+import ViewMandalModal from './ViewMandalModal'
+
+interface Organization {
+  id: number
+  name: string
+  location: string
+  contact: string
+  email: string
+  phone: string
+  plan: string
+  price: string
+  members: string
+  validUntil: string
+  status: string
+}
+
+const initialOrganizations: Organization[] = [
     {
       id: 1,
       name: 'Marathi Mandal New Jersey',
@@ -67,21 +85,69 @@ export default function MandalsTable() {
     },
   ]
 
+interface MandalsTableProps {
+  mandals?: any[]
+}
+
+export default function MandalsTable({ mandals }: MandalsTableProps = {}) {
+  const [organizations, setOrganizations] = useState<Organization[]>(mandals || initialOrganizations)
+  const [openMenuId, setOpenMenuId] = useState<number | null>(null)
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+  const [organizationToDelete, setOrganizationToDelete] = useState<Organization | null>(null)
+  const [viewModalOpen, setViewModalOpen] = useState(false)
+  const [organizationToView, setOrganizationToView] = useState<Organization | null>(null)
+
+  const handleEdit = (organization: Organization) => {
+    console.log('Edit organization:', organization)
+    alert(`Edit organization: ${organization.name}\n\nIn production, this would open an edit form with the organization data pre-filled.`)
+  }
+
+  const handleView = (organization: Organization) => {
+    setOrganizationToView(organization)
+    setViewModalOpen(true)
+    setOpenMenuId(null)
+  }
+
+  const handleDeleteClick = (organization: Organization) => {
+    setOrganizationToDelete(organization)
+    setDeleteModalOpen(true)
+  }
+
+  const handleDeleteConfirm = () => {
+    if (organizationToDelete) {
+      setOrganizations(organizations.filter(o => o.id !== organizationToDelete.id))
+      console.log('Deleted organization:', organizationToDelete)
+      setOrganizationToDelete(null)
+    }
+  }
+
   return (
     <div className="flex flex-col gap-4">
       {/* Tabs */}
       <div className="border-b border-[#e2e8f0]">
         <div className="flex items-start gap-7 px-5 pt-[14px] pb-px">
-          <button className="pb-[14px] border-b-2 border-[#7e22ce] text-sm font-semibold text-[#7e22ce] leading-4">
+          <button
+            onClick={() => handleTab.switch('All Organizations')}
+            className="pb-[14px] border-b-2 border-[#7e22ce] text-sm font-semibold text-[#7e22ce] leading-4 hover:opacity-80"
+          >
             All Organizations (28)
           </button>
-          <button className="pb-[13.5px] pt-0.5 text-sm font-semibold text-[#64748b] leading-4">
+          <button
+            onClick={() => handleTab.switch('Active')}
+            className="pb-[13.5px] pt-0.5 text-sm font-semibold text-[#64748b] leading-4 hover:text-[#7e22ce]"
+          >
             Active (24)
           </button>
-          <button className="pb-[13.5px] pt-0.5 text-sm font-semibold text-[#64748b] leading-4">
+          <button
+            onClick={() => handleTab.switch('Expiring Soon')}
+            className="pb-[13.5px] pt-0.5 text-sm font-semibold text-[#64748b] leading-4 hover:text-[#7e22ce]"
+          >
             Expiring Soon (3)
           </button>
-          <button className="pb-[13.5px] pt-0.5 text-sm font-semibold text-[#64748b] leading-4">
+          <button
+            onClick={() => handleTab.switch('Inactive')}
+            className="pb-[13.5px] pt-0.5 text-sm font-semibold text-[#64748b] leading-4 hover:text-[#7e22ce]"
+          >
             Inactive (1)
           </button>
         </div>
@@ -171,9 +237,33 @@ export default function MandalsTable() {
 
               {/* Actions */}
               <div className="flex-1 px-3 flex items-center justify-center">
-                <button className="p-1">
-                  <img src="/icons/menu-three-dots.svg" alt="" className="w-4 h-4" />
-                </button>
+                <div className="relative inline-block">
+                  <button
+                    onClick={() => setOpenMenuId(openMenuId === org.id ? null : org.id)}
+                    className="p-1 hover:bg-gray-100 rounded"
+                  >
+                    <img src="/icons/menu-three-dots.svg" alt="Actions" className="w-4 h-4" />
+                  </button>
+                  <ActionMenu
+                    isOpen={openMenuId === org.id}
+                    onClose={() => setOpenMenuId(null)}
+                    options={[
+                      {
+                        label: 'View Details',
+                        onClick: () => handleView(org),
+                      },
+                      {
+                        label: 'Edit Organization',
+                        onClick: () => handleEdit(org),
+                      },
+                      {
+                        label: 'Delete',
+                        onClick: () => handleDeleteClick(org),
+                        className: 'text-[#ef4444] hover:bg-[#fef2f2]',
+                      },
+                    ]}
+                  />
+                </div>
               </div>
             </div>
           ))}
@@ -185,24 +275,62 @@ export default function MandalsTable() {
             Showing 1 to 10 of 28 organizations
           </span>
           <div className="flex items-center gap-1">
-            <button className="w-7 h-7 border border-[#e2e8f0] rounded flex items-center justify-center p-px hover:bg-gray-50">
+            <button
+              onClick={handlePagination.previous}
+              className="w-7 h-7 border border-[#e2e8f0] rounded flex items-center justify-center p-px hover:bg-gray-50"
+            >
               <img src="/icons/chevron-left.svg" alt="" className="w-[14px] h-[14px]" />
             </button>
-            <button className="w-7 h-7 bg-[#7f28bc] rounded flex items-center justify-center text-xs font-bold text-white leading-4">
+            <button
+              onClick={() => handlePagination.goToPage(1)}
+              className="w-7 h-7 bg-[#7f28bc] rounded flex items-center justify-center text-xs font-bold text-white leading-4"
+            >
               1
             </button>
-            <button className="w-7 h-7 border border-[#e2e8f0] rounded flex items-center justify-center text-xs font-medium text-[#475569] leading-4 hover:bg-gray-50">
+            <button
+              onClick={() => handlePagination.goToPage(2)}
+              className="w-7 h-7 border border-[#e2e8f0] rounded flex items-center justify-center text-xs font-medium text-[#475569] leading-4 hover:bg-gray-50"
+            >
               2
             </button>
-            <button className="w-7 h-7 border border-[#e2e8f0] rounded flex items-center justify-center text-xs font-medium text-[#475569] leading-4 hover:bg-gray-50">
+            <button
+              onClick={() => handlePagination.goToPage(3)}
+              className="w-7 h-7 border border-[#e2e8f0] rounded flex items-center justify-center text-xs font-medium text-[#475569] leading-4 hover:bg-gray-50"
+            >
               3
             </button>
-            <button className="w-7 h-7 border border-[#e2e8f0] rounded flex items-center justify-center p-px hover:bg-gray-50">
+            <button
+              onClick={handlePagination.next}
+              className="w-7 h-7 border border-[#e2e8f0] rounded flex items-center justify-center p-px hover:bg-gray-50"
+            >
               <img src="/icons/chevron-right.svg" alt="" className="w-[14px] h-[14px]" />
             </button>
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={deleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false)
+          setOrganizationToDelete(null)
+        }}
+        onConfirm={handleDeleteConfirm}
+        title="Delete Organization"
+        message="Are you sure you want to delete"
+        itemName={organizationToDelete?.name || ''}
+      />
+
+      {/* View Mandal Modal */}
+      <ViewMandalModal
+        isOpen={viewModalOpen}
+        onClose={() => {
+          setViewModalOpen(false)
+          setOrganizationToView(null)
+        }}
+        data={organizationToView}
+      />
     </div>
   )
 }

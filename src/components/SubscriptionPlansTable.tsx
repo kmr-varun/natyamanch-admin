@@ -1,5 +1,22 @@
-export default function SubscriptionPlansTable() {
-  const plans = [
+import { useState } from 'react'
+import { ActionMenu, DeleteConfirmModal } from './shared'
+import ViewPlanModal from './ViewPlanModal'
+
+interface Plan {
+  id: number
+  name: string
+  description: string
+  type: string
+  price: string
+  usd: string
+  duration: string
+  durationDetail: string
+  features: string[]
+  status: string
+  sortOrder: number
+}
+
+const initialPlans: Plan[] = [
     {
       id: 1,
       name: 'Monthly Pass',
@@ -86,6 +103,38 @@ export default function SubscriptionPlansTable() {
       sortOrder: 1,
     },
   ]
+
+export default function SubscriptionPlansTable() {
+  const [plans, setPlans] = useState<Plan[]>(initialPlans)
+  const [openMenuId, setOpenMenuId] = useState<number | null>(null)
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+  const [planToDelete, setPlanToDelete] = useState<Plan | null>(null)
+  const [viewModalOpen, setViewModalOpen] = useState(false)
+  const [planToView, setPlanToView] = useState<Plan | null>(null)
+
+  const handleEdit = (plan: Plan) => {
+    console.log('Edit plan:', plan)
+    alert(`Edit plan: ${plan.name}\n\nIn production, this would open an edit form with the plan data pre-filled.`)
+  }
+
+  const handleView = (plan: Plan) => {
+    setPlanToView(plan)
+    setViewModalOpen(true)
+    setOpenMenuId(null)
+  }
+
+  const handleDeleteClick = (plan: Plan) => {
+    setPlanToDelete(plan)
+    setDeleteModalOpen(true)
+  }
+
+  const handleDeleteConfirm = () => {
+    if (planToDelete) {
+      setPlans(plans.filter(p => p.id !== planToDelete.id))
+      console.log('Deleted plan:', planToDelete)
+      setPlanToDelete(null)
+    }
+  }
 
   return (
     <div className="flex flex-col">
@@ -188,18 +237,58 @@ export default function SubscriptionPlansTable() {
             {/* Actions */}
             <div className="w-[82px] px-4 py-[13.5px] flex items-center justify-center">
               <div className="flex items-center -mr-px">
-                <button className="px-[9px] py-[5px] bg-white border border-[#7f28bc] rounded flex items-center gap-1 hover:bg-[#faf5ff]">
+                <button onClick={() => handleEdit(plan)} className="px-[9px] py-[5px] bg-white border border-[#7f28bc] rounded flex items-center gap-1 hover:bg-[#faf5ff]">
                   <img src="/icons/edit-small-icon.svg" alt="" className="w-3 h-3" />
                   <span className="text-[11px] font-medium text-[#7f28bc] leading-4">Edit</span>
                 </button>
-                <button className="p-1 rounded hover:bg-gray-50">
-                  <img src="/icons/more-vertical-icon.svg" alt="" className="w-[14px] h-[14px]" />
-                </button>
+                <div className="relative inline-block">
+                  <button onClick={() => setOpenMenuId(openMenuId === plan.id ? null : plan.id)} className="p-1 rounded hover:bg-gray-50">
+                    <img src="/icons/more-vertical-icon.svg" alt="Actions" className="w-[14px] h-[14px]" />
+                  </button>
+                  <ActionMenu
+                    isOpen={openMenuId === plan.id}
+                    onClose={() => setOpenMenuId(null)}
+                    options={[
+                      {
+                        label: 'View Details',
+                        onClick: () => handleView(plan),
+                      },
+                      {
+                        label: 'Delete',
+                        onClick: () => handleDeleteClick(plan),
+                        className: 'text-[#ef4444] hover:bg-[#fef2f2]',
+                      },
+                    ]}
+                  />
+                </div>
               </div>
             </div>
           </div>
         ))}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={deleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false)
+          setPlanToDelete(null)
+        }}
+        onConfirm={handleDeleteConfirm}
+        title="Delete Plan"
+        message="Are you sure you want to delete plan"
+        itemName={planToDelete?.name || ''}
+      />
+
+      {/* View Plan Modal */}
+      <ViewPlanModal
+        isOpen={viewModalOpen}
+        onClose={() => {
+          setViewModalOpen(false)
+          setPlanToView(null)
+        }}
+        data={planToView}
+      />
     </div>
   )
 }

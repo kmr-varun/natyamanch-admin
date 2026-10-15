@@ -1,23 +1,37 @@
+import { handleForm, handleModal, handleMedia, handleTab } from '../utils/mockHandlers'
+
 export default function ContentEditPanel() {
   return (
     <div className="bg-white border border-[#e2e8f0] rounded-xl shadow-sm overflow-hidden p-px flex flex-col h-full">
       {/* Header */}
       <div className="border-b border-[#e2e8f0] px-5 py-4 flex items-center justify-between">
         <h2 className="text-sm font-semibold text-[#0f172a] leading-5 tracking-[-0.35px]">Edit Page</h2>
-        <button className="w-4 h-4 rounded-md p-1">
+        <button
+          onClick={handleModal.close}
+          className="w-4 h-4 rounded-md p-1 hover:bg-gray-100"
+        >
           <img src="/icons/close-x-icon.svg" alt="" className="w-full h-full" />
         </button>
       </div>
 
       {/* Tabs */}
       <div className="border-b border-[#e2e8f0] px-5 pb-px flex items-start">
-        <button className="flex-1 pb-[14px] pt-3 px-3 border-b-2 border-[#7f28bc] text-xs font-semibold text-[#7f28bc] leading-4">
+        <button
+          onClick={() => handleTab.switch('Content')}
+          className="flex-1 pb-[14px] pt-3 px-3 border-b-2 border-[#7f28bc] text-xs font-semibold text-[#7f28bc] leading-4 hover:opacity-80"
+        >
           Content
         </button>
-        <button className="flex-1 pb-[13px] pt-3 px-3 text-xs font-semibold text-[#64748b] leading-4">
+        <button
+          onClick={() => handleTab.switch('SEO')}
+          className="flex-1 pb-[13px] pt-3 px-3 text-xs font-semibold text-[#64748b] leading-4 hover:text-[#7f28bc]"
+        >
           SEO
         </button>
-        <button className="flex-1 pb-[13px] pt-3 px-3 text-xs font-semibold text-[#64748b] leading-4">
+        <button
+          onClick={() => handleTab.switch('Settings')}
+          className="flex-1 pb-[13px] pt-3 px-3 text-xs font-semibold text-[#64748b] leading-4 hover:text-[#7f28bc]"
+        >
           Settings
         </button>
       </div>
@@ -66,7 +80,10 @@ export default function ContentEditPanel() {
         {/* Page Content */}
         <div className="flex items-center gap-1.5">
           <label className="flex-1 text-xs font-semibold text-[#334155] leading-4">Page Content</label>
-          <button className="w-[163px] bg-[#7f28bc] rounded-lg px-3 py-2 flex items-center justify-center gap-1.5">
+          <button
+            onClick={() => handleModal.open('Page Content Editor')}
+            className="w-[163px] bg-[#7f28bc] rounded-lg px-3 py-2 flex items-center justify-center gap-1.5 hover:bg-[#6d1fa3]"
+          >
             <img src="/icons/edit-content-icon.svg" alt="" className="w-[10px] h-[14px]" />
             <span className="text-xs font-medium text-white leading-4">Edit Page Content</span>
           </button>
@@ -78,11 +95,17 @@ export default function ContentEditPanel() {
           <div className="flex items-center gap-3">
             <img src="/images/page-thumbnail.png" alt="" className="w-[87px] h-[74px] rounded object-cover flex-shrink-0" />
             <div className="flex flex-col gap-2">
-              <button className="bg-white border border-[#e2e8f0] rounded-lg px-[13px] py-[7px] flex items-center gap-1.5">
+              <button
+                onClick={() => handleMedia.change('featured image')}
+                className="bg-white border border-[#e2e8f0] rounded-lg px-[13px] py-[7px] flex items-center gap-1.5 hover:bg-gray-50"
+              >
                 <img src="/icons/change-image-icon.svg" alt="" className="w-[11.45px] h-[14px]" />
                 <span className="text-xs font-medium text-[#334155] leading-4">Change Image</span>
               </button>
-              <button className="w-[126px] bg-white border border-[#dc2626] rounded-lg px-[13px] py-[7px] flex items-center justify-center">
+              <button
+                onClick={() => handleMedia.remove('featured image')}
+                className="w-[126px] bg-white border border-[#dc2626] rounded-lg px-[13px] py-[7px] flex items-center justify-center hover:bg-red-50"
+              >
                 <span className="text-xs font-medium text-[#dc2626] leading-4">Remove</span>
               </button>
             </div>
@@ -118,11 +141,17 @@ export default function ContentEditPanel() {
 
       {/* Bottom Fixed Action Bar */}
       <div className="bg-white border-t border-[#e2e8f0] h-[81px] px-4 py-4 flex items-center gap-[11px]">
-        <button className="flex-1 bg-white border border-[#e2e8f0] rounded-lg px-[13px] py-2.5 flex items-center justify-center gap-1.5">
+        <button
+          onClick={() => handleModal.open('Preview')}
+          className="flex-1 bg-white border border-[#e2e8f0] rounded-lg px-[13px] py-2.5 flex items-center justify-center gap-1.5 hover:bg-gray-50"
+        >
           <img src="/icons/eye-preview-icon.svg" alt="" className="w-[14px] h-[14px]" />
           <span className="text-xs font-semibold text-[#334155] leading-4">Preview</span>
         </button>
-        <button className="flex-1 bg-[#7f28bc] shadow-sm rounded-lg px-3 py-2 flex items-center justify-center">
+        <button
+          onClick={() => handleForm.submit('Page')}
+          className="flex-1 bg-[#7f28bc] shadow-sm rounded-lg px-3 py-2 flex items-center justify-center hover:bg-[#6d1fa3]"
+        >
           <span className="text-xs font-semibold text-white leading-4">Update Page</span>
         </button>
       </div>

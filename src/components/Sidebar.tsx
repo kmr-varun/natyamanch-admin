@@ -14,6 +14,8 @@ const menuItems = [
   { icon: '/icons/settings.svg', label: 'Settings', path: '/settings' },
 ]
 
+import { handleClick } from '../utils/mockHandlers'
+
 export default function Sidebar() {
   const location = useLocation()
 
@@ -53,7 +55,7 @@ export default function Sidebar() {
         })}
 
         {/* Logout */}
-        <button className="w-full flex items-center gap-2 px-4 py-2.5 rounded text-[#ff383c] hover:bg-red-50 transition-colors">
+        <button onClick={() => handleClick('Logout')} className="w-full flex items-center gap-2 px-4 py-2.5 rounded text-[#ff383c] hover:bg-red-50 transition-colors">
           <div className="w-4 h-4 flex items-center justify-center flex-shrink-0">
             <img
               src="/icons/logout.svg"

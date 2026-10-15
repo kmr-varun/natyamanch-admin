@@ -3,11 +3,11 @@ import RevenueChart from '../components/RevenueChart'
 import MandalsTable from '../components/MandalsTable'
 import RecentOrdersTable from '../components/RecentOrdersTable'
 import PopularVideos from '../components/PopularVideos'
+import { PageContainer } from '../components/shared'
 
 export default function Dashboard() {
   return (
-    <div className="p-8">
-      {/* Stats Cards Row */}
+    <PageContainer>
       <div className="flex gap-3">
         <StatsCard
           icon="/icons/users-icon.svg"
@@ -51,8 +51,7 @@ export default function Dashboard() {
         />
       </div>
 
-      {/* Charts and Tables Row */}
-      <div className="grid grid-cols-12 gap-4 pt-6">
+      <div className="grid grid-cols-12 gap-6 pt-6">
         <div className="col-span-7">
           <RevenueChart />
         </div>
@@ -61,8 +60,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Orders and Videos Row */}
-      <div className="flex gap-4 pt-6">
+      <div className="flex gap-6 pt-6">
         <div className="flex-1">
           <RecentOrdersTable />
         </div>
@@ -70,6 +68,6 @@ export default function Dashboard() {
           <PopularVideos />
         </div>
       </div>
-    </div>
+    </PageContainer>
   )
 }

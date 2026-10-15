@@ -1,29 +1,88 @@
+import { useState } from 'react'
+import { handlePagination, handleTab, handleDropdownChange } from '../utils/mockHandlers'
+import { ActionMenu, DeleteConfirmModal } from './shared'
+import ViewSubscriptionModal from './ViewSubscriptionModal'
+
+interface Subscription {
+  id: number
+  subscriber: string
+  email: string
+  type: string
+  plan: string
+  video: string
+  startDate: string
+  endDate: string
+  amount: string
+  status: string
+  payment: string
+}
+
+const initialSubscriptions: Subscription[] = Array.from({ length: 8 }, (_, i) => ({
+  id: i + 1,
+  subscriber: 'Rohan Deshpande',
+  email: 'rohan@example.com',
+  type: 'Individual',
+  plan: 'Single Video Access',
+  video: '(Hello Inspector)',
+  startDate: '12 Aug\n2025',
+  endDate: '14 Aug\n2025',
+  amount: '₹149',
+  status: 'Active',
+  payment: 'Razorpay',
+}))
+
 export default function SubscriptionsTable() {
-  const subscriptions = Array.from({ length: 8 }, (_, i) => ({
-    id: i + 1,
-    subscriber: 'Rohan Deshpande',
-    email: 'rohan@example.com',
-    type: 'Individual',
-    plan: 'Single Video Access',
-    video: '(Hello Inspector)',
-    startDate: '12 Aug\n2025',
-    endDate: '14 Aug\n2025',
-    amount: '₹149',
-    status: 'Active',
-    payment: 'Razorpay',
-  }))
+  const [subscriptions, setSubscriptions] = useState<Subscription[]>(initialSubscriptions)
+  const [openMenuId, setOpenMenuId] = useState<number | null>(null)
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+  const [subscriptionToDelete, setSubscriptionToDelete] = useState<Subscription | null>(null)
+  const [viewModalOpen, setViewModalOpen] = useState(false)
+  const [subscriptionToView, setSubscriptionToView] = useState<Subscription | null>(null)
+
+  const handleEdit = (subscription: Subscription) => {
+    console.log('Edit subscription:', subscription)
+    alert(`Edit subscription: ${subscription.subscriber}\n\nIn production, this would open an edit form with the subscription data pre-filled.`)
+  }
+
+  const handleView = (subscription: Subscription) => {
+    setSubscriptionToView(subscription)
+    setViewModalOpen(true)
+    setOpenMenuId(null)
+  }
+
+  const handleDeleteClick = (subscription: Subscription) => {
+    setSubscriptionToDelete(subscription)
+    setDeleteModalOpen(true)
+  }
+
+  const handleDeleteConfirm = () => {
+    if (subscriptionToDelete) {
+      setSubscriptions(subscriptions.filter(s => s.id !== subscriptionToDelete.id))
+      console.log('Deleted subscription:', subscriptionToDelete)
+      setSubscriptionToDelete(null)
+    }
+  }
 
   return (
     <div className="bg-white border border-[rgba(226,232,240,0.9)] rounded-xl shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] overflow-hidden">
       {/* Tabs */}
       <div className="border-b border-[#e2e8f0] px-4 pt-2 flex items-start">
-        <button className="flex items-center gap-1.5 px-4 pb-3 pt-2.5 border-b-2 border-[#7f28bc] text-xs font-semibold text-[#7f28bc] leading-4">
+        <button
+          onClick={() => handleTab.switch('All Subscriptions')}
+          className="flex items-center gap-1.5 px-4 pb-3 pt-2.5 border-b-2 border-[#7f28bc] text-xs font-semibold text-[#7f28bc] leading-4 hover:opacity-80"
+        >
           All Subscriptions <span>(486)</span>
         </button>
-        <button className="px-4 pb-[11px] pt-2.5 text-xs font-medium text-[#64748b] leading-4">
+        <button
+          onClick={() => handleTab.switch('Individual')}
+          className="px-4 pb-[11px] pt-2.5 text-xs font-medium text-[#64748b] leading-4 hover:text-[#7f28bc]"
+        >
           Individual (312)
         </button>
-        <button className="px-4 pb-[11px] pt-2.5 text-xs font-medium text-[#64748b] leading-4">
+        <button
+          onClick={() => handleTab.switch('Mandal / Organization')}
+          className="px-4 pb-[11px] pt-2.5 text-xs font-medium text-[#64748b] leading-4 hover:text-[#7f28bc]"
+        >
           Mandal / Organization (174)
         </button>
       </div>
@@ -115,9 +174,33 @@ export default function SubscriptionsTable() {
                 <span className="text-[11px] text-[#64748b] leading-4">{sub.payment}</span>
               </div>
               <div className="flex-1 px-2 py-[38.5px] flex items-center justify-center">
-                <button className="p-1">
-                  <img src="/icons/menu-dots-icon.svg" alt="" className="w-4 h-4" />
-                </button>
+                <div className="relative inline-block">
+                  <button
+                    onClick={() => setOpenMenuId(openMenuId === sub.id ? null : sub.id)}
+                    className="p-1 hover:bg-gray-100 rounded"
+                  >
+                    <img src="/icons/menu-dots-icon.svg" alt="Actions" className="w-4 h-4" />
+                  </button>
+                  <ActionMenu
+                    isOpen={openMenuId === sub.id}
+                    onClose={() => setOpenMenuId(null)}
+                    options={[
+                      {
+                        label: 'View Details',
+                        onClick: () => handleView(sub),
+                      },
+                      {
+                        label: 'Edit Subscription',
+                        onClick: () => handleEdit(sub),
+                      },
+                      {
+                        label: 'Delete',
+                        onClick: () => handleDeleteClick(sub),
+                        className: 'text-[#ef4444] hover:bg-[#fef2f2]',
+                      },
+                    ]}
+                  />
+                </div>
               </div>
             </div>
           ))}
@@ -130,21 +213,53 @@ export default function SubscriptionsTable() {
           Showing <span className="font-medium text-[#334155]">1</span> to <span className="font-medium text-[#334155]">10</span> of <span className="font-medium text-[#334155]">486</span> subscriptions
         </span>
         <div className="flex items-center gap-1.5">
-          <button className="w-7 h-7 border border-[#e2e8f0] rounded flex items-center justify-center p-px hover:bg-gray-50">
+          <button
+            onClick={handlePagination.previous}
+            className="w-7 h-7 border border-[#e2e8f0] rounded flex items-center justify-center p-px hover:bg-gray-50"
+          >
             <img src="/icons/chevron-left-icon.svg" alt="" className="w-[14px] h-[14px]" />
           </button>
-          <button className="w-7 h-7 bg-[#7f28bc] rounded flex items-center justify-center text-xs font-semibold text-white leading-4">
+          <button
+            onClick={() => handlePagination.goToPage(1)}
+            className="w-7 h-7 bg-[#7f28bc] rounded flex items-center justify-center text-xs font-semibold text-white leading-4"
+          >
             1
           </button>
-          <button className="w-7 h-7 rounded flex items-center justify-center text-xs text-[#475569] leading-4">2</button>
-          <button className="w-7 h-7 rounded flex items-center justify-center text-xs text-[#475569] leading-4">3</button>
-          <button className="w-7 h-7 rounded flex items-center justify-center text-xs text-[#475569] leading-4">4</button>
-          <button className="w-7 h-7 rounded flex items-center justify-center text-xs text-[#475569] leading-4">5</button>
-          <button className="w-7 h-7 border border-[#e2e8f0] rounded flex items-center justify-center p-px hover:bg-gray-50">
+          <button
+            onClick={() => handlePagination.goToPage(2)}
+            className="w-7 h-7 rounded flex items-center justify-center text-xs text-[#475569] leading-4 hover:bg-gray-100"
+          >
+            2
+          </button>
+          <button
+            onClick={() => handlePagination.goToPage(3)}
+            className="w-7 h-7 rounded flex items-center justify-center text-xs text-[#475569] leading-4 hover:bg-gray-100"
+          >
+            3
+          </button>
+          <button
+            onClick={() => handlePagination.goToPage(4)}
+            className="w-7 h-7 rounded flex items-center justify-center text-xs text-[#475569] leading-4 hover:bg-gray-100"
+          >
+            4
+          </button>
+          <button
+            onClick={() => handlePagination.goToPage(5)}
+            className="w-7 h-7 rounded flex items-center justify-center text-xs text-[#475569] leading-4 hover:bg-gray-100"
+          >
+            5
+          </button>
+          <button
+            onClick={handlePagination.next}
+            className="w-7 h-7 border border-[#e2e8f0] rounded flex items-center justify-center p-px hover:bg-gray-50"
+          >
             <img src="/icons/chevron-right-icon.svg" alt="" className="w-[14px] h-[14px]" />
           </button>
           <div className="ml-2 relative">
-            <select className="h-7 pl-[9px] pr-[33px] py-1 bg-white border border-[#e2e8f0] rounded text-xs text-[#475569] appearance-none">
+            <select
+              onChange={(e) => handleDropdownChange('pageSize', e.target.value)}
+              className="h-7 pl-[9px] pr-[33px] py-1 bg-white border border-[#e2e8f0] rounded text-xs text-[#475569] appearance-none hover:bg-gray-50"
+            >
               <option>10 / page</option>
               <option>25 / page</option>
               <option>50 / page</option>
@@ -157,6 +272,29 @@ export default function SubscriptionsTable() {
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={deleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false)
+          setSubscriptionToDelete(null)
+        }}
+        onConfirm={handleDeleteConfirm}
+        title="Delete Subscription"
+        message="Are you sure you want to delete subscription for"
+        itemName={subscriptionToDelete?.subscriber || ''}
+      />
+
+      {/* View Subscription Modal */}
+      <ViewSubscriptionModal
+        isOpen={viewModalOpen}
+        onClose={() => {
+          setViewModalOpen(false)
+          setSubscriptionToView(null)
+        }}
+        data={subscriptionToView}
+      />
     </div>
   )
 }

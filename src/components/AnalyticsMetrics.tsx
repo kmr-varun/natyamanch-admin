@@ -43,18 +43,16 @@ export default function AnalyticsMetrics() {
           key={idx}
           className="flex-1 bg-white border border-[#e2e8f0] rounded-xl shadow-sm p-[17px] flex items-center gap-4"
         >
-          {/* Icon Container */}
           <div className={`w-12 h-12 ${metric.bgColor} rounded-xl flex items-center justify-center flex-shrink-0`}>
             {metric.isText ? (
               <span className="text-xl font-bold text-[#7e22ce] leading-7">₹</span>
             ) : metric.isImage ? (
-              <img src={metric.icon} alt="" className="w-12 h-12" />
+              <img src={metric.icon as string} alt="" className="w-12 h-12" />
             ) : (
-              <img src={metric.icon} alt="" className="w-6 h-6" />
+              <img src={metric.icon as string} alt="" className="w-6 h-6" />
             )}
           </div>
 
-          {/* Content */}
           <div className="flex flex-col gap-0.5 pt-[1.5px]">
             <span className="text-xs font-medium text-[#64748b] leading-4">{metric.title}</span>
             <div className="flex flex-col pt-0.5">

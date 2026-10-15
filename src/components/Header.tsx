@@ -3,7 +3,10 @@ interface HeaderProps {
   description?: string
 }
 
+import { handleClick } from '../utils/mockHandlers'
+
 export default function Header({ title, description }: HeaderProps) {
+
   return (
     <header className="bg-white flex items-center justify-between px-8 py-[25px] border-b border-gray-100">
       {/* Left: Greeting */}
@@ -31,7 +34,7 @@ export default function Header({ title, description }: HeaderProps) {
         </div>
 
         {/* Notification Bell */}
-        <button className="relative p-[11px] bg-white border border-[#f1f5f9] rounded-full shadow-sm hover:bg-gray-50 transition-colors">
+        <button onClick={() => handleClick('View Notifications')} className="relative p-[11px] bg-white border border-[#f1f5f9] rounded-full shadow-sm hover:bg-gray-50 transition-colors">
           <img src="/icons/bell.svg" alt="Notifications" className="w-5 h-5" />
           {/* Red notification badge */}
           <span className="absolute top-2 right-2 w-2 h-2 bg-[#e11d48] rounded-full border-2 border-white"></span>

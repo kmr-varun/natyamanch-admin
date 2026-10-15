@@ -1,4 +1,19 @@
-export default function BasicInformationCard() {
+import { handleDropdownChange } from '../utils/mockHandlers'
+
+interface BasicInformationCardProps {
+  mode?: 'add' | 'edit'
+  initialData?: {
+    title: string
+    slug: string
+    shortDescription: string
+    fullDescription: string
+    category: string
+    language: string
+    duration: string
+  }
+}
+
+export default function BasicInformationCard({ mode = 'add', initialData }: BasicInformationCardProps) {
   return (
     <div className="bg-white rounded-xl border border-[#e2e8f0] p-[21px] flex flex-col gap-4">
       {/* Header */}
@@ -15,7 +30,8 @@ export default function BasicInformationCard() {
           </label>
           <input
             type="text"
-            defaultValue="Hello Inspector"
+            defaultValue={mode === 'edit' ? initialData?.title : ''}
+            placeholder="Enter video title"
             className="h-10 px-[13px] py-2 bg-white border border-[#e2e8f0] rounded-lg text-xs font-medium text-[#1e293b] focus:outline-none focus:border-[#7f28bc]"
           />
         </div>
@@ -27,7 +43,8 @@ export default function BasicInformationCard() {
           </label>
           <input
             type="text"
-            defaultValue="hello-inspector"
+            defaultValue={mode === 'edit' ? initialData?.slug : ''}
+            placeholder="video-slug"
             className="h-10 px-[13px] py-2 bg-[rgba(248,250,252,0.5)] border border-[#e2e8f0] rounded-lg text-xs text-[#334155] font-mono focus:outline-none focus:border-[#7f28bc]"
           />
         </div>
@@ -40,12 +57,13 @@ export default function BasicInformationCard() {
         </label>
         <textarea
           rows={3}
-          defaultValue="A affluent family, celebrating their daughters engagement to a wellknown producers son in their farm house. The celebrations are suddenly interrupted with the arrival of an inspector, investigating the suicide of young girl!"
+          defaultValue={mode === 'edit' ? initialData?.shortDescription : ''}
+          placeholder="Enter a short description (max 300 characters)"
           className="px-[13px] py-2 bg-white border border-[#e2e8f0] rounded-lg text-xs text-[#334155] leading-[19.5px] resize-none focus:outline-none focus:border-[#7f28bc]"
         />
         <div className="flex justify-end pt-1.5">
           <span className="text-[10px] font-medium text-[#94a3b8] leading-[15px]">
-            214/300
+            0/300
           </span>
         </div>
       </div>
@@ -58,13 +76,14 @@ export default function BasicInformationCard() {
         <div className="border border-[#e2e8f0] rounded-lg overflow-hidden">
           <textarea
             rows={4}
-            defaultValue={`The celebrations are suddenly interrupted with the arrival of an inspector, investigating the suicide of young girl! why has to come there? what has the family got to do with the young girl's suicide?? watch the Marathi Play - HELLO INSPECTOR on Natyamanch APP`}
+            defaultValue={mode === 'edit' ? initialData?.fullDescription : ''}
+            placeholder="Enter full description (max 2000 characters)"
             className="w-full px-3 py-3 bg-white text-xs text-[#334155] leading-[19.5px] resize-none focus:outline-none border-0"
           />
         </div>
         <div className="flex justify-end">
           <span className="text-[10px] font-medium text-[#94a3b8] leading-[15px]">
-            256/2000
+            0/2000
           </span>
         </div>
       </div>
@@ -77,7 +96,12 @@ export default function BasicInformationCard() {
             Category <span className="text-[#f43f5e]">*</span>
           </label>
           <div className="relative h-10">
-            <select className="w-full h-full px-[13px] py-2 bg-white border border-[#e2e8f0] rounded-lg text-xs text-[#334155] appearance-none focus:outline-none focus:border-[#7f28bc]">
+            <select
+              defaultValue={mode === 'edit' ? initialData?.category : ''}
+              onChange={(e) => handleDropdownChange('category', e.target.value)}
+              className="w-full h-full px-[13px] py-2 bg-white border border-[#e2e8f0] rounded-lg text-xs text-[#334155] appearance-none focus:outline-none focus:border-[#7f28bc] hover:bg-gray-50"
+            >
+              <option value="">Select category</option>
               <option>Drama</option>
               <option>Comedy</option>
               <option>Tragedy</option>
@@ -96,7 +120,12 @@ export default function BasicInformationCard() {
             Language <span className="text-[#f43f5e]">*</span>
           </label>
           <div className="relative h-10">
-            <select className="w-full h-full px-[13px] py-2 bg-white border border-[#e2e8f0] rounded-lg text-xs text-[#334155] appearance-none focus:outline-none focus:border-[#7f28bc]">
+            <select
+              defaultValue={mode === 'edit' ? initialData?.language : ''}
+              onChange={(e) => handleDropdownChange('language', e.target.value)}
+              className="w-full h-full px-[13px] py-2 bg-white border border-[#e2e8f0] rounded-lg text-xs text-[#334155] appearance-none focus:outline-none focus:border-[#7f28bc] hover:bg-gray-50"
+            >
+              <option value="">Select language</option>
               <option>Marathi</option>
               <option>Hindi</option>
               <option>English</option>
@@ -116,7 +145,8 @@ export default function BasicInformationCard() {
           </label>
           <input
             type="text"
-            defaultValue="02:15:30"
+            defaultValue={mode === 'edit' ? initialData?.duration : ''}
+            placeholder="00:00:00"
             className="h-10 px-[13px] py-2 bg-white border border-[#e2e8f0] rounded-lg text-xs text-[#334155] font-mono focus:outline-none focus:border-[#7f28bc]"
           />
         </div>

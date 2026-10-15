@@ -1,4 +1,7 @@
+import { handleExport } from '../utils/mockHandlers'
+
 export default function OrdersMetrics() {
+
   return (
     <div className="flex items-center gap-[55px]">
       {/* Metrics Cards */}
@@ -54,7 +57,7 @@ export default function OrdersMetrics() {
 
       {/* Export Button */}
       <div className="w-[190px] flex items-center justify-end rounded-xl py-3">
-        <button className="px-[14px] py-2 bg-[#7f28bc] rounded-lg flex items-center gap-[6px] shadow-[0px_1px_1px_rgba(0,0,0,0.05)] hover:bg-[#6d1fa3]">
+        <button onClick={() => handleExport.csv('Orders')} className="px-[14px] py-2 bg-[#7f28bc] rounded-lg flex items-center gap-[6px] shadow-[0px_1px_1px_rgba(0,0,0,0.05)] hover:bg-[#6d1fa3]">
           <img src="/icons/download-export-icon.svg" alt="" className="w-3 h-3" />
           <span className="text-xs font-semibold text-white leading-4">Export Orders</span>
         </button>

@@ -1,4 +1,6 @@
 import { useNavigate } from 'react-router-dom'
+import { Button } from './shared'
+import { handleFilter, handleExport } from '../utils/mockHandlers'
 
 export default function VideosFilterToolbar() {
   const navigate = useNavigate()
@@ -22,7 +24,7 @@ export default function VideosFilterToolbar() {
         {/* Category Filter */}
         <div className="flex items-center gap-5">
           <span className="text-base font-medium text-black">Category</span>
-          <button className="flex items-center justify-between w-[250px] px-5 py-3 bg-white border border-[rgba(17,17,17,0.1)] rounded-md text-xs text-[#8a8a8a] hover:border-[#7f28bc] transition-colors">
+          <button onClick={() => handleFilter.apply('Category', 'All')} className="flex items-center justify-between w-[250px] px-5 py-3 bg-white border border-[rgba(17,17,17,0.1)] rounded-md text-xs text-[#8a8a8a] hover:border-[#7f28bc] transition-colors">
             All
             <img src="/icons/dropdown-arrow.svg" alt="" className="w-2 h-1" />
           </button>
@@ -31,20 +33,12 @@ export default function VideosFilterToolbar() {
 
       {/* Right Side: Action Buttons */}
       <div className="flex items-center gap-2">
-        {/* Export Button */}
-        <button className="flex items-center gap-2 h-10 px-3.5 border border-[#7f28bc] rounded text-xs font-medium text-[#7f28bc] tracking-[0.36px] hover:bg-[#f7ecff] transition-colors">
-          <img src="/icons/export-icon.svg" alt="" className="w-3 h-3" />
+        <Button onClick={() => handleExport.csv('Videos')} variant="secondary" icon="/icons/export-icon.svg" className="h-10 px-3.5">
           Export
-        </button>
-
-        {/* Add New Video Button */}
-        <button
-          onClick={() => navigate('/videos/add')}
-          className="flex items-center gap-2 h-10 px-6 bg-[#7f28bc] rounded text-xs font-medium text-white tracking-[0.36px] shadow-[0px_2px_4px_rgba(56,6,43,0.2)] hover:bg-[#6d1fa3] transition-colors"
-        >
-          <img src="/icons/add-user-icon.svg" alt="" className="w-4 h-3" />
+        </Button>
+        <Button onClick={() => navigate('/videos/add')} icon="/icons/add-user-icon.svg" className="h-10 px-6">
           Add New Video
-        </button>
+        </Button>
       </div>
     </div>
   )

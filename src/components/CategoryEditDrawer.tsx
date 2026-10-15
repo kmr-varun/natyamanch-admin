@@ -1,10 +1,94 @@
-export default function CategoryEditDrawer() {
+import { useState, useEffect } from 'react'
+
+interface CategoryEditDrawerProps {
+  mode?: 'add' | 'edit'
+  initialData?: {
+    name: string
+    slug: string
+    description: string
+    image?: string
+    parentCategory?: string
+    status: string
+  }
+  onSave: (data: any) => void
+  onCancel: () => void
+}
+
+export default function CategoryEditDrawer({
+  mode = 'add',
+  initialData,
+  onSave,
+  onCancel
+}: CategoryEditDrawerProps) {
+  const [formData, setFormData] = useState({
+    name: initialData?.name || '',
+    slug: initialData?.slug || '',
+    description: initialData?.description || '',
+    image: initialData?.image || '',
+    parentCategory: initialData?.parentCategory || 'None (Main Category)',
+    status: initialData?.status || 'Active'
+  })
+
+  const [selectedImage, setSelectedImage] = useState<string | null>(initialData?.image || null)
+
+  useEffect(() => {
+    if (initialData) {
+      setFormData({
+        name: initialData.name || '',
+        slug: initialData.slug || '',
+        description: initialData.description || '',
+        image: initialData.image || '',
+        parentCategory: initialData.parentCategory || 'None (Main Category)',
+        status: initialData.status || 'Active'
+      })
+      setSelectedImage(initialData.image || null)
+    }
+  }, [initialData])
+
+  const handleImageUpload = () => {
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.accept = 'image/*'
+    input.onchange = (e: any) => {
+      const file = e.target?.files?.[0]
+      if (file) {
+        const reader = new FileReader()
+        reader.onload = (e) => {
+          const imageUrl = e.target?.result as string
+          setSelectedImage(imageUrl)
+          setFormData({ ...formData, image: imageUrl })
+        }
+        reader.readAsDataURL(file)
+      }
+    }
+    input.click()
+  }
+
+  const handleRemoveImage = () => {
+    setSelectedImage(null)
+    setFormData({ ...formData, image: '' })
+  }
+
+  const handleSubmit = () => {
+    if (!formData.name || !formData.slug) {
+      alert('Please fill in all required fields')
+      return
+    }
+    onSave(formData)
+  }
+
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const name = e.target.value
+    const slug = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+    setFormData({ ...formData, name, slug })
+  }
+
   return (
     <div className="bg-white border-l border-[#e2e8f0] rounded-xl flex flex-col h-full">
       {/* Header */}
       <div className="border-b border-[#e2e8f0] px-5 py-[18px]">
         <h2 className="text-sm font-semibold text-[#0f172a] leading-5">
-          Add / Edit Category
+          {mode === 'edit' ? 'Edit Category' : 'Add Category'}
         </h2>
       </div>
 
@@ -22,7 +106,9 @@ export default function CategoryEditDrawer() {
           </label>
           <input
             type="text"
-            defaultValue="Marathi Drama"
+            value={formData.name}
+            onChange={handleNameChange}
+            placeholder="Enter category name"
             className="h-10 px-[13px] py-2 bg-white border border-[#e2e8f0] rounded-lg text-xs text-[#1e293b] leading-4 focus:outline-none focus:border-[#7f28bc]"
           />
         </div>
@@ -34,11 +120,13 @@ export default function CategoryEditDrawer() {
           </label>
           <input
             type="text"
-            defaultValue="marathi-drama"
+            value={formData.slug}
+            onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+            placeholder="category-slug"
             className="h-10 px-[13px] py-2 bg-white border border-[#e2e8f0] rounded-lg text-xs text-[#1e293b] font-mono leading-4 focus:outline-none focus:border-[#7f28bc]"
           />
           <p className="text-[11px] text-[#94a3b8] leading-4">
-            This will be used in the category URL (e.g. /category/marathi-drama)
+            This will be used in the category URL (e.g. /category/your-slug)
           </p>
         </div>
 
@@ -49,11 +137,14 @@ export default function CategoryEditDrawer() {
           </label>
           <textarea
             rows={3}
-            defaultValue="Traditional and contemporary Marathi drama performances, including classic and modern plays."
+            value={formData.description}
+            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            placeholder="Enter category description"
             className="px-[13px] py-2 bg-white border border-[#e2e8f0] rounded-lg text-xs text-[#334155] leading-[19.5px] resize-none focus:outline-none focus:border-[#7f28bc]"
+            maxLength={300}
           />
           <div className="flex justify-end pt-0.5">
-            <span className="text-[11px] text-[#94a3b8] leading-4">78/300</span>
+            <span className="text-[11px] text-[#94a3b8] leading-4">{formData.description.length}/300</span>
           </div>
         </div>
 
@@ -64,22 +155,34 @@ export default function CategoryEditDrawer() {
           </label>
           <div className="flex flex-col gap-3">
             {/* Image Preview */}
-            <div className="h-[99px] rounded overflow-hidden">
-              <img
-                src="/images/category-thumbnail.png"
-                alt="Category"
-                className="w-full h-full object-cover"
-              />
-            </div>
+            {selectedImage && (
+              <div className="h-[99px] rounded overflow-hidden border border-[#e2e8f0]">
+                <img
+                  src={selectedImage}
+                  alt="Category"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            )}
             {/* Action Buttons */}
             <div className="flex items-center gap-1.5">
-              <button className="flex items-center gap-1.5 h-[30px] px-[49.65px] border border-[#7f28bc] rounded-lg text-xs font-semibold text-[#7f28bc] leading-4 hover:bg-[#faf5ff] transition-colors">
+              <button
+                onClick={handleImageUpload}
+                type="button"
+                className="flex items-center gap-1.5 h-[30px] px-[49.65px] border border-[#7f28bc] rounded-lg text-xs font-semibold text-[#7f28bc] leading-4 hover:bg-[#faf5ff] transition-colors"
+              >
                 <img src="/icons/upload-icon.svg" alt="" className="w-[14px] h-[14px]" />
-                Change Image
+                {selectedImage ? 'Change Image' : 'Upload Image'}
               </button>
-              <button className="h-[30px] px-[49.65px] border border-[#f43f5e] rounded-lg text-xs font-semibold text-[#f43f5e] leading-4 hover:bg-[#fff1f2] transition-colors">
-                Remove
-              </button>
+              {selectedImage && (
+                <button
+                  onClick={handleRemoveImage}
+                  type="button"
+                  className="h-[30px] px-[49.65px] border border-[#f43f5e] rounded-lg text-xs font-semibold text-[#f43f5e] leading-4 hover:bg-[#fff1f2] transition-colors"
+                >
+                  Remove
+                </button>
+              )}
             </div>
             {/* Help Text */}
             <p className="text-[10px] text-[#94a3b8] leading-[12.5px]">
@@ -95,7 +198,11 @@ export default function CategoryEditDrawer() {
             Parent Category
           </label>
           <div className="relative h-10">
-            <select className="w-full h-full px-[13px] py-2 bg-white border border-[#e2e8f0] rounded-lg text-xs text-[#1e293b] leading-4 appearance-none focus:outline-none focus:border-[#7f28bc]">
+            <select
+              value={formData.parentCategory}
+              onChange={(e) => setFormData({ ...formData, parentCategory: e.target.value })}
+              className="w-full h-full px-[13px] py-2 bg-white border border-[#e2e8f0] rounded-lg text-xs text-[#1e293b] leading-4 appearance-none focus:outline-none focus:border-[#7f28bc]"
+            >
               <option>None (Main Category)</option>
               <option>Drama</option>
               <option>Comedy</option>
@@ -114,7 +221,11 @@ export default function CategoryEditDrawer() {
             Status
           </label>
           <div className="relative h-10">
-            <select className="w-full h-full px-[13px] py-2 bg-white border border-[#e2e8f0] rounded-lg text-xs text-[#1e293b] leading-4 appearance-none focus:outline-none focus:border-[#7f28bc]">
+            <select
+              value={formData.status}
+              onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+              className="w-full h-full px-[13px] py-2 bg-white border border-[#e2e8f0] rounded-lg text-xs text-[#1e293b] leading-4 appearance-none focus:outline-none focus:border-[#7f28bc]"
+            >
               <option>Active</option>
               <option>Draft</option>
               <option>Archived</option>
@@ -130,11 +241,19 @@ export default function CategoryEditDrawer() {
 
       {/* Footer Buttons */}
       <div className="bg-white border-t border-[#e2e8f0] px-4 py-4 flex items-center gap-2">
-        <button className="flex-1 h-10 border border-[#7f28bc] rounded-lg text-xs font-semibold text-[#7f28bc] leading-4 hover:bg-[#faf5ff] transition-colors">
+        <button
+          onClick={onCancel}
+          type="button"
+          className="flex-1 h-10 border border-[#7f28bc] rounded-lg text-xs font-semibold text-[#7f28bc] leading-4 hover:bg-[#faf5ff] transition-colors"
+        >
           Cancel
         </button>
-        <button className="flex-1 h-10 bg-[#7f28bc] rounded-lg text-xs font-semibold text-white leading-4 shadow-[0px_1px_1px_rgba(0,0,0,0.05)] hover:bg-[#6d1fa3] transition-colors">
-          Save Category
+        <button
+          onClick={handleSubmit}
+          type="button"
+          className="flex-1 h-10 bg-[#7f28bc] rounded-lg text-xs font-semibold text-white leading-4 shadow-[0px_1px_1px_rgba(0,0,0,0.05)] hover:bg-[#6d1fa3] transition-colors"
+        >
+          {mode === 'edit' ? 'Update Category' : 'Save Category'}
         </button>
       </div>
     </div>

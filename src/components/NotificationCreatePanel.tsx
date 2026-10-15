@@ -1,10 +1,13 @@
+import { handleModal, handleClick, handleDropdownChange, handleForm, handleNotification } from '../utils/mockHandlers'
+
 export default function NotificationCreatePanel() {
+
   return (
     <div className="bg-white border border-[#e2e8f0] shadow-sm rounded-xl p-[21px] flex flex-col gap-4">
       {/* Header */}
       <div className="flex items-center justify-between pb-1">
         <h3 className="text-sm font-bold text-[#0f172a] leading-5">Create New Notification</h3>
-        <button className="w-4 h-4">
+        <button onClick={() => handleModal.close()} className="w-4 h-4">
           <img src="/icons/close-x-icon.svg" alt="" className="w-full h-full" />
         </button>
       </div>
@@ -43,15 +46,15 @@ export default function NotificationCreatePanel() {
             Type <span className="text-[#ef4444]">*</span>
           </label>
           <div className="flex items-start gap-2">
-            <button className="flex-1 bg-[rgba(250,245,255,0.5)] border-2 border-[#7f28bc] rounded-lg px-7 py-3 flex flex-col items-center justify-center gap-1">
+            <button onClick={() => handleClick('Select Push Type')} className="flex-1 bg-[rgba(250,245,255,0.5)] border-2 border-[#7f28bc] rounded-lg px-7 py-3 flex flex-col items-center justify-center gap-1">
               <img src="/icons/bell-notification-icon.svg" alt="" className="w-4 h-4" />
               <span className="text-[11px] font-medium text-[#7e22ce] leading-4">Push</span>
             </button>
-            <button className="flex-1 border border-[#e2e8f0] rounded-lg px-[26.9px] py-3 flex flex-col items-center justify-center gap-1">
+            <button onClick={() => handleClick('Select Email Type')} className="flex-1 border border-[#e2e8f0] rounded-lg px-[26.9px] py-3 flex flex-col items-center justify-center gap-1">
               <img src="/icons/bell-notification-icon.svg" alt="" className="w-4 h-4" />
               <span className="text-[11px] font-medium text-[#475569] leading-4">Email</span>
             </button>
-            <button className="flex-1 border border-[#e2e8f0] rounded-lg px-[23.13px] py-3 flex flex-col items-center justify-center gap-1">
+            <button onClick={() => handleClick('Select In-App Type')} className="flex-1 border border-[#e2e8f0] rounded-lg px-[23.13px] py-3 flex flex-col items-center justify-center gap-1">
               <img src="/icons/bell-notification-icon.svg" alt="" className="w-4 h-4" />
               <span className="text-[11px] font-medium text-[#475569] leading-4">In-App</span>
             </button>
@@ -64,7 +67,7 @@ export default function NotificationCreatePanel() {
             Audience <span className="text-[#ef4444]">*</span>
           </label>
           <div className="relative">
-            <select className="w-full h-10 bg-white border border-[#e2e8f0] rounded-lg px-[13px] py-2.5 text-xs text-[#94a3b8] leading-4 appearance-none">
+            <select onChange={(e) => handleDropdownChange('Audience', e.target.value)} className="w-full h-10 bg-white border border-[#e2e8f0] rounded-lg px-[13px] py-2.5 text-xs text-[#94a3b8] leading-4 appearance-none">
               <option>Select audience</option>
             </select>
             <img
@@ -97,10 +100,10 @@ export default function NotificationCreatePanel() {
 
         {/* Action Buttons */}
         <div className="flex items-start justify-center gap-2.5 pt-3">
-          <button className="flex-1 border border-[#e2e8f0] rounded-lg px-[13px] py-2.5 text-xs font-medium text-[#334155] leading-4">
+          <button onClick={() => handleForm.cancel()} className="flex-1 border border-[#e2e8f0] rounded-lg px-[13px] py-2.5 text-xs font-medium text-[#334155] leading-4">
             Cancel
           </button>
-          <button className="flex-1 bg-[#7f28bc] rounded-lg px-3 py-2.5 text-xs font-medium text-white leading-4">
+          <button onClick={() => handleNotification.send('Push')} className="flex-1 bg-[#7f28bc] rounded-lg px-3 py-2.5 text-xs font-medium text-white leading-4">
             Send Notification
           </button>
         </div>

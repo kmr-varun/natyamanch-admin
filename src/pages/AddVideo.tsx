@@ -1,3 +1,4 @@
+import { VideoFormProvider } from '../contexts/VideoFormContext'
 import VideoPreviewCard from '../components/VideoPreviewCard'
 import CloudStreamSettingsCard from '../components/CloudStreamSettingsCard'
 import AdditionalDetailsCard from '../components/AdditionalDetailsCard'
@@ -10,25 +11,27 @@ import { PageContainer } from '../components/shared'
 
 export default function AddVideo() {
   return (
-    <>
-      <PageContainer className="pb-24">
-        <div className="grid grid-cols-12 gap-6">
-          <div className="col-span-7 flex flex-col gap-6">
-            <VideoPreviewCard />
-            <CloudStreamSettingsCard />
-            <AdditionalDetailsCard />
-            <StatusPublishingCard />
-          </div>
+    <VideoFormProvider>
+      <>
+        <PageContainer className="pb-24">
+          <div className="grid grid-cols-12 gap-6">
+            <div className="col-span-7 flex flex-col gap-6">
+              <VideoPreviewCard />
+              <CloudStreamSettingsCard />
+              <AdditionalDetailsCard />
+              <StatusPublishingCard />
+            </div>
 
-          <div className="col-span-5 flex flex-col gap-6">
-            <BasicInformationCard />
-            <PricingAccessCard />
-            <CastCrewCard />
+            <div className="col-span-5 flex flex-col gap-6">
+              <BasicInformationCard />
+              <PricingAccessCard />
+              <CastCrewCard />
+            </div>
           </div>
-        </div>
-      </PageContainer>
+        </PageContainer>
 
-      <VideoActionBar />
-    </>
+        <VideoActionBar />
+      </>
+    </VideoFormProvider>
   )
 }

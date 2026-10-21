@@ -1,167 +1,86 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import StatsCard from '../components/StatsCard'
 import UsersFilterToolbar from '../components/UsersFilterToolbar'
 import UsersTable from '../components/UsersTable'
 import AddUserModal from '../components/AddUserModal'
 import { PageContainer } from '../components/shared'
-
-interface User {
-  id: number
-  name: string
-  email: string
-  purchasedVideos: number
-  activeVideos: number
-  activeStatus: 'Active' | 'Expired'
-  accountStatus: 'Active' | 'Expired'
-  joinedDate: string
-}
-
-const initialUsers: User[] = [
-  {
-    id: 1048,
-    name: 'Priya Sharma',
-    email: 'priya.sharma@email.com',
-    purchasedVideos: 8,
-    activeVideos: 6,
-    activeStatus: 'Active',
-    accountStatus: 'Active',
-    joinedDate: 'Sep 12, 2026',
-  },
-  {
-    id: 1047,
-    name: 'Rahul Mehta',
-    email: 'rahul.mehta@email.com',
-    purchasedVideos: 8,
-    activeVideos: 6,
-    activeStatus: 'Active',
-    accountStatus: 'Active',
-    joinedDate: 'Sep 12, 2026',
-  },
-  {
-    id: 1046,
-    name: 'Ananya Iyer',
-    email: 'ananya.iyer@email.com',
-    purchasedVideos: 8,
-    activeVideos: 6,
-    activeStatus: 'Active',
-    accountStatus: 'Active',
-    joinedDate: 'Sep 12, 2026',
-  },
-  {
-    id: 1045,
-    name: 'Vikram Singh',
-    email: 'vikram.singh@email.com',
-    purchasedVideos: 8,
-    activeVideos: 0,
-    activeStatus: 'Expired',
-    accountStatus: 'Expired',
-    joinedDate: 'Sep 12, 2026',
-  },
-  {
-    id: 1044,
-    name: 'Neha Kapoor',
-    email: 'neha.kapoor@email.com',
-    purchasedVideos: 8,
-    activeVideos: 6,
-    activeStatus: 'Active',
-    accountStatus: 'Active',
-    joinedDate: 'Sep 12, 2026',
-  },
-  {
-    id: 1043,
-    name: 'Arjun Patel',
-    email: 'arjun.patel@email.com',
-    purchasedVideos: 8,
-    activeVideos: 6,
-    activeStatus: 'Active',
-    accountStatus: 'Active',
-    joinedDate: 'Sep 12, 2026',
-  },
-  {
-    id: 1042,
-    name: 'Divya Nair',
-    email: 'divya.nair@email.com',
-    purchasedVideos: 8,
-    activeVideos: 6,
-    activeStatus: 'Active',
-    accountStatus: 'Active',
-    joinedDate: 'Sep 12, 2026',
-  },
-  {
-    id: 1041,
-    name: 'Karan Desai',
-    email: 'karan.desai@email.com',
-    purchasedVideos: 8,
-    activeVideos: 6,
-    activeStatus: 'Active',
-    accountStatus: 'Active',
-    joinedDate: 'Sep 12, 2026',
-  },
-]
+import { usersApi, analyticsApi } from '../lib/api'
+import type { AdminUserRow, Pagination } from '../lib/api'
 
 export default function Users() {
-  const [users, setUsers] = useState<User[]>(initialUsers)
-  const [filteredUsers, setFilteredUsers] = useState<User[]>(initialUsers)
+  const [users, setUsers] = useState<AdminUserRow[]>([])
+  const [pagination, setPagination] = useState<Pagination>({ page: 1, limit: 10, total: 0, totalPages: 0 })
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
   const [addUserModalOpen, setAddUserModalOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
-  const [statusFilter, setStatusFilter] = useState<'All' | 'Active' | 'Inactive'>('All')
+  const [activeTab, setActiveTab] = useState<'active' | 'inactive'>('active')
+  const [stats, setStats] = useState({ total: 0, active: 0 })
+  const searchTimeout = useRef<ReturnType<typeof setTimeout>>()
 
-  const handleAddUser = (newUser: { name: string; email: string; password: string; status: 'Active' | 'Inactive' }) => {
-    const user: User = {
-      id: Math.max(...users.map(u => u.id)) + 1,
-      name: newUser.name,
-      email: newUser.email,
-      purchasedVideos: 0,
-      activeVideos: 0,
-      activeStatus: newUser.status === 'Active' ? 'Active' : 'Expired',
-      accountStatus: newUser.status === 'Active' ? 'Active' : 'Expired',
-      joinedDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+  const fetchUsers = async (page: number, limit: number, search: string, tab: 'active' | 'inactive') => {
+    setLoading(true)
+    setError('')
+    try {
+      const params: Record<string, string | number> = { page, limit, status: tab }
+      if (search) params.search = search
+      const res = await usersApi.list(params)
+      setUsers(res.data)
+      if (res.pagination) setPagination(res.pagination)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load users')
+    } finally {
+      setLoading(false)
     }
-    const updatedUsers = [user, ...users]
-    setUsers(updatedUsers)
-    applyFilters(updatedUsers, searchQuery, statusFilter)
   }
 
-  const handleDeleteUser = (userId: number) => {
-    const updatedUsers = users.filter(u => u.id !== userId)
-    setUsers(updatedUsers)
-    applyFilters(updatedUsers, searchQuery, statusFilter)
+  const fetchStats = async () => {
+    try {
+      const res = await analyticsApi.dashboard()
+      setStats({ total: res.users.total, active: res.users.active })
+    } catch {
+      // stats are non-critical, fail silently
+    }
   }
+
+  useEffect(() => {
+    fetchStats()
+  }, [])
+
+  useEffect(() => {
+    fetchUsers(1, pagination.limit, searchQuery, activeTab)
+  }, [activeTab])
 
   const handleSearch = (query: string) => {
-    setSearchQuery(query)
-    applyFilters(users, query, statusFilter)
+    clearTimeout(searchTimeout.current)
+    searchTimeout.current = setTimeout(() => {
+      setSearchQuery(query)
+      fetchUsers(1, pagination.limit, query, activeTab)
+    }, 400)
   }
 
-  const handleStatusFilter = (status: 'All' | 'Active' | 'Inactive') => {
-    setStatusFilter(status)
-    applyFilters(users, searchQuery, status)
+  const handleTabChange = (tab: 'active' | 'inactive') => {
+    setActiveTab(tab)
   }
 
-  const applyFilters = (userList: User[], query: string, status: 'All' | 'Active' | 'Inactive') => {
-    let filtered = userList
+  const handlePageChange = (page: number) => {
+    fetchUsers(page, pagination.limit, searchQuery, activeTab)
+    setPagination(p => ({ ...p, page }))
+  }
 
-    // Apply search filter
-    if (query) {
-      filtered = filtered.filter(user =>
-        user.name.toLowerCase().includes(query.toLowerCase()) ||
-        user.email.toLowerCase().includes(query.toLowerCase()) ||
-        user.id.toString().includes(query)
-      )
+  const handleLimitChange = (limit: number) => {
+    setPagination(p => ({ ...p, limit }))
+    fetchUsers(1, limit, searchQuery, activeTab)
+  }
+
+  const handleStatusUpdate = async (userId: string, status: string) => {
+    try {
+      await usersApi.updateStatus(userId, status)
+      fetchUsers(pagination.page, pagination.limit, searchQuery, activeTab)
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Failed to update status')
     }
-
-    // Apply status filter
-    if (status !== 'All') {
-      filtered = filtered.filter(user =>
-        status === 'Active' ? user.accountStatus === 'Active' : user.accountStatus === 'Expired'
-      )
-    }
-
-    setFilteredUsers(filtered)
   }
-
-  const activeUsers = users.filter(u => u.accountStatus === 'Active').length
-  const subscribedUsers = users.filter(u => u.activeVideos > 0).length
 
   return (
     <PageContainer>
@@ -170,32 +89,32 @@ export default function Users() {
           icon="/icons/total-users-icon.svg"
           iconBg="#f86c2e"
           title="Total Users"
-          value={users.length.toString()}
-          change="12%"
+          value={stats.total.toString()}
+          change="—"
           changeType="up"
         />
         <StatsCard
           icon="/icons/active-users-icon.svg"
           iconBg="#e23e5e"
           title="Active Users"
-          value={activeUsers.toString()}
-          change="12%"
+          value={stats.active.toString()}
+          change="—"
           changeType="up"
         />
         <StatsCard
           icon="/icons/active-access-icon.svg"
           iconBg="#7f28bc"
-          title="Active Access"
-          value={activeUsers.toString()}
-          change="12%"
+          title="Showing"
+          value={pagination.total.toString()}
+          change="—"
           changeType="up"
         />
         <StatsCard
           icon="/icons/subscribed-users-icon.svg"
           iconBg="#4930ea"
-          title="Subscribed Users"
-          value={subscribedUsers.toString()}
-          change="12%"
+          title="With Active Access"
+          value={users.filter(u => u.active_videos > 0).length.toString()}
+          change="—"
           changeType="up"
         />
       </div>
@@ -204,22 +123,31 @@ export default function Users() {
         <UsersFilterToolbar
           onAddUser={() => setAddUserModalOpen(true)}
           onSearch={handleSearch}
-          onStatusFilter={handleStatusFilter}
-          users={filteredUsers}
+          users={users}
         />
       </div>
 
       <div className="pt-6">
         <UsersTable
-          users={filteredUsers}
-          onDeleteUser={handleDeleteUser}
+          users={users}
+          loading={loading}
+          error={error}
+          pagination={pagination}
+          activeTab={activeTab}
+          onTabChange={handleTabChange}
+          onPageChange={handlePageChange}
+          onLimitChange={handleLimitChange}
+          onStatusUpdate={handleStatusUpdate}
         />
       </div>
 
       <AddUserModal
         isOpen={addUserModalOpen}
         onClose={() => setAddUserModalOpen(false)}
-        onAdd={handleAddUser}
+        onSuccess={() => {
+          fetchStats()
+          fetchUsers(1, pagination.limit, searchQuery, activeTab)
+        }}
       />
     </PageContainer>
   )

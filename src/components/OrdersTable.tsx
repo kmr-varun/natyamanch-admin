@@ -1,274 +1,172 @@
 import { useState } from 'react'
-import { handlePagination, handleTab } from '../utils/mockHandlers'
 import { ActionMenu, DeleteConfirmModal } from './shared'
 import ViewOrderModal from './ViewOrderModal'
+import type { AdminOrder, Pagination } from '../lib/api'
 
-interface Order {
-  id: string
-  user: { name: string; email: string; initials: string }
-  type: string
-  item: { title: string; subtitle: string; badge: string }
-  amount: string
-  date: { date: string; time: string }
-  status: string
-  payment: string
+interface Props {
+  orders: AdminOrder[]
+  loading: boolean
+  pagination: Pagination
+  onPageChange: (page: number) => void
+  onDelete: (id: string) => void
 }
 
-const initialOrders: Order[] = Array(5).fill(null).map((_, idx) => ({
-  id: `#NM00051${idx + 2}`,
-  user: { name: 'Priya Kulkarni', email: 'priya@mmnj.org', initials: 'PK' },
-  type: 'Individual',
-  item: { title: 'Hello Inspector', subtitle: 'Video Purchase', badge: 'Hello' },
-  amount: '₹149',
-  date: { date: '12 Aug 2025', time: '10:32 AM' },
-  status: 'Completed',
-  payment: 'Razorpay',
-}))
+function formatDate(d: string) {
+  return new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+}
 
-export default function OrdersTable() {
-  const [orders, setOrders] = useState<Order[]>(initialOrders)
+function formatTime(d: string) {
+  return new Date(d).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })
+}
+
+function initials(name?: string) {
+  return (name || '?').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
+}
+
+const STATUS_STYLES: Record<string, string> = {
+  completed: 'bg-[#d1fae5] text-[#047857]',
+  pending:   'bg-[#fef9c3] text-[#a16207]',
+  failed:    'bg-[#fef2f2] text-[#ef4444]',
+}
+
+export default function OrdersTable({ orders, loading, pagination, onPageChange, onDelete }: Props) {
   const [openMenuId, setOpenMenuId] = useState<string | null>(null)
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
-  const [orderToDelete, setOrderToDelete] = useState<Order | null>(null)
+  const [toDelete, setToDelete] = useState<AdminOrder | null>(null)
   const [viewModalOpen, setViewModalOpen] = useState(false)
-  const [orderToView, setOrderToView] = useState<Order | null>(null)
+  const [toView, setToView] = useState<AdminOrder | null>(null)
 
-  const handleEdit = (order: Order) => {
-    console.log('Edit order:', order)
-    alert(`Edit order: ${order.id}\n\nIn production, this would open an edit form with the order data pre-filled.`)
-  }
-
-  const handleView = (order: Order) => {
-    setOrderToView(order)
-    setViewModalOpen(true)
-    setOpenMenuId(null)
-  }
-
-  const handleDeleteClick = (order: Order) => {
-    setOrderToDelete(order)
-    setDeleteModalOpen(true)
-  }
-
-  const handleDeleteConfirm = () => {
-    if (orderToDelete) {
-      setOrders(orders.filter(o => o.id !== orderToDelete.id))
-      console.log('Deleted order:', orderToDelete)
-      setOrderToDelete(null)
-    }
+  const start = (pagination.page - 1) * pagination.limit + 1
+  const end = Math.min(pagination.page * pagination.limit, pagination.total)
+  const pageNums = () => {
+    const nums: number[] = []
+    for (let i = Math.max(1, pagination.page - 2); i <= Math.min(pagination.totalPages, pagination.page + 2); i++) nums.push(i)
+    return nums
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      {/* Tabs */}
-      <div className="border-b border-[#e2e8f0]">
-        <div className="flex items-start gap-7 px-5 pt-[14px] pb-px">
-          <button
-            onClick={() => handleTab.switch('All Purchases')}
-            className="pb-[14px] border-b-2 border-[#7e22ce] text-sm font-semibold text-[#7e22ce] leading-4 hover:opacity-80"
-          >
-            All Purchases (28)
-          </button>
-          <button
-            onClick={() => handleTab.switch('Individual Purchases')}
-            className="pb-[13.5px] pt-0.5 text-sm font-semibold text-[#64748b] leading-4 hover:text-[#7e22ce]"
-          >
-            Individual Purchases (438)
-          </button>
-          <button
-            onClick={() => handleTab.switch('Mandal Subscriptions')}
-            className="pb-[13.5px] pt-0.5 text-sm font-semibold text-[#64748b] leading-4 hover:text-[#7e22ce]"
-          >
-            Mandal Subscriptions (74)
-          </button>
-        </div>
-      </div>
-
-      {/* Table */}
-      <div className="bg-white border border-[#e2e8f0] rounded-xl overflow-hidden p-px">
-        {/* Table Header */}
-        <div className="bg-[rgba(248,250,252,0.75)] border-b border-[#e2e8f0] flex items-start">
-          <div className="w-[26px] px-3 py-5 flex items-center justify-center">
-            <input type="checkbox" className="w-4 h-4 border border-[#cbd5e1] rounded" />
-          </div>
-          <div className="w-[86px] px-2 py-5 flex items-center justify-center">
-            <span className="text-[11px] font-bold text-[#64748b] leading-4 tracking-[0.55px] uppercase">ORDER ID</span>
-          </div>
-          <div className="w-[131px] px-3 py-5 flex items-center justify-center">
-            <span className="text-[11px] font-bold text-[#64748b] leading-4 tracking-[0.55px] uppercase">USER</span>
-          </div>
-          <div className="flex-1 px-2 py-5 flex items-center justify-center">
-            <span className="text-[11px] font-bold text-[#64748b] leading-4 tracking-[0.55px] uppercase">TYPE</span>
-          </div>
-          <div className="w-[109px] px-3 py-5 flex items-center justify-center">
-            <span className="text-[11px] font-bold text-[#64748b] leading-4 tracking-[0.55px] uppercase">ITEM / PLAN</span>
-          </div>
-          <div className="w-[70px] px-2 py-5 flex items-center justify-center">
-            <span className="text-[11px] font-bold text-[#64748b] leading-4 tracking-[0.55px] uppercase">AMOUNT</span>
-          </div>
-          <div className="flex-1 px-2 py-5 flex items-center justify-center">
-            <span className="text-[11px] font-bold text-[#64748b] leading-4 tracking-[0.55px] uppercase">DATE</span>
-          </div>
-          <div className="flex-1 px-2 py-5 flex items-center justify-center">
-            <span className="text-[11px] font-bold text-[#64748b] leading-4 tracking-[0.55px] uppercase">STATUS</span>
-          </div>
-          <div className="flex-1 px-2 py-3 flex items-center justify-center">
-            <span className="text-[11px] font-bold text-[#64748b] leading-4 tracking-[0.55px] uppercase text-center">PAYMENT<br/>METHOD</span>
-          </div>
-          <div className="w-[51px] px-2 py-5 flex items-center justify-center">
-            <span className="text-[11px] font-bold text-[#64748b] leading-4 tracking-[0.55px] uppercase text-center">ACTIONS</span>
-          </div>
+    <>
+      <div className="bg-white border border-[rgba(226,232,240,0.9)] rounded-xl shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] overflow-hidden">
+        {/* Header */}
+        <div className="bg-[rgba(248,250,252,0.6)] border-b border-[#f1f5f9] flex items-center">
+          {[
+            { label: '#', w: 'w-10' },
+            { label: 'User', w: 'flex-1 min-w-[160px]' },
+            { label: 'Video', w: 'flex-1' },
+            { label: 'Amount', w: 'w-[100px]' },
+            { label: 'Gateway', w: 'w-[110px]' },
+            { label: 'Date', w: 'w-[120px]' },
+            { label: 'Status', w: 'w-[100px]' },
+            { label: 'Actions', w: 'w-[80px]' },
+          ].map(col => (
+            <div key={col.label} className={`${col.w} px-4 py-4 text-center`}>
+              <span className="text-[11px] font-bold text-[#434343] tracking-[0.55px] uppercase">{col.label}</span>
+            </div>
+          ))}
         </div>
 
-        {/* Table Body */}
-        {orders.map((order, idx) => (
-          <div key={idx} className="bg-[rgba(250,245,255,0.4)] flex items-center h-[93px]">
-            <div className="w-[26px] px-3 flex items-center justify-center">
-              <div className="w-[18px] h-[18px] bg-[#9333ea] border border-transparent rounded p-px flex items-center justify-center">
-                <img src="/icons/checkbox-checked.svg" alt="" className="w-4 h-4" />
+        {/* Body */}
+        {loading ? (
+          Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="flex items-center border-b border-[#f8f2fa] px-2 py-4 gap-3">
+              <div className="w-10 flex justify-center"><div className="h-3 w-5 bg-gray-100 rounded animate-pulse" /></div>
+              <div className="flex-1 flex items-center gap-2">
+                <div className="w-7 h-7 bg-gray-100 rounded-full animate-pulse flex-shrink-0" />
+                <div className="flex flex-col gap-1"><div className="h-3 w-28 bg-gray-100 rounded animate-pulse" /><div className="h-2.5 w-20 bg-gray-100 rounded animate-pulse" /></div>
               </div>
+              {[160, 80, 90, 90, 70, 60, 50].map((w, j) => (
+                <div key={j} style={{ width: w }} className="flex justify-center">
+                  <div className="h-3 bg-gray-100 rounded animate-pulse w-full" />
+                </div>
+              ))}
             </div>
-            <div className="w-[86px] px-2 flex items-center">
-              <span className="text-xs font-medium text-[#0f172a] leading-4">{order.id}</span>
-            </div>
-            <div className="w-[131px] flex items-center gap-2">
-              <div className="w-7 h-7 bg-[#f3e8ff] rounded-full flex items-center justify-center flex-shrink-0">
-                <span className="text-[10px] font-semibold text-[#7e22ce] leading-4">{order.user.initials}</span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-xs font-semibold text-[#0f172a] leading-[15px]">{order.user.name}</span>
-                <span className="text-[10px] text-[#94a3b8] leading-[12.5px]">{order.user.email}</span>
-              </div>
-            </div>
-            <div className="flex-1 px-2 flex items-center justify-center">
-              <span className="px-2 py-0.5 bg-[#eff6ff] rounded text-[10px] font-medium text-[#2563eb] leading-4">{order.type}</span>
-            </div>
-            <div className="w-[109px] pl-3 flex items-center gap-2">
-              <div className="w-7 h-7 bg-gradient-to-t from-[#450a0a] to-[#78350f] border border-[#451a03] rounded flex items-center justify-center flex-shrink-0">
-                <span className="text-[8px] font-bold text-[#fde68a] leading-4">{order.item.badge}</span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-xs font-medium text-[#0f172a] leading-[15px]">{order.item.title}</span>
-                <span className="text-[10px] text-[#94a3b8] leading-[12.5px]">{order.item.subtitle}</span>
-              </div>
-            </div>
-            <div className="w-[70px] px-2 flex items-center justify-center">
-              <span className="text-xs font-semibold text-[#0f172a] leading-4">{order.amount}</span>
-            </div>
-            <div className="flex-1 px-2 flex items-center justify-center">
-              <div className="text-[11px] text-[#475569] leading-[13.75px] text-center">
-                {order.date.date}<br/><span className="text-[#94a3b8]">{order.date.time}</span>
-              </div>
-            </div>
-            <div className="flex-1 px-2 flex items-center justify-center">
-              <span className="px-2 py-0.5 bg-[#d1fae5] rounded-full text-[10px] font-semibold text-[#047857] leading-4">{order.status}</span>
-            </div>
-            <div className="flex-1 px-2 flex items-center justify-center">
-              <span className="text-xs text-[#475569] leading-4">{order.payment}</span>
-            </div>
-            <div className="w-[51px] px-2 flex items-center justify-center">
-              <div className="relative inline-block">
-                <button
-                  onClick={() => setOpenMenuId(openMenuId === order.id ? null : order.id)}
-                  className="p-1 hover:bg-gray-100 rounded"
-                >
-                  <img src="/icons/three-dots-icon.svg" alt="Actions" className="w-4 h-4" />
-                </button>
-                <ActionMenu
-                  isOpen={openMenuId === order.id}
-                  onClose={() => setOpenMenuId(null)}
-                  options={[
-                    {
-                      label: 'View Details',
-                      onClick: () => handleView(order),
-                    },
-                    {
-                      label: 'Edit Order',
-                      onClick: () => handleEdit(order),
-                    },
-                    {
-                      label: 'Delete',
-                      onClick: () => handleDeleteClick(order),
-                      className: 'text-[#ef4444] hover:bg-[#fef2f2]',
-                    },
-                  ]}
-                />
-              </div>
-            </div>
+          ))
+        ) : orders.length === 0 ? (
+          <div className="py-16 text-center text-sm text-gray-400">
+            No orders found.
           </div>
-        ))}
+        ) : (
+          orders.map((order, index) => (
+            <div key={order.id} className="flex items-center border-b border-[#f8f2fa] last:border-b-0 hover:bg-[#fdfaff] transition-colors">
+              <div className="w-10 px-4 py-4 text-center">
+                <span className="text-xs text-[#94a3b8]">{String(start + index).padStart(2, '0')}</span>
+              </div>
+              <div className="flex-1 min-w-[160px] px-4 py-3 flex items-center gap-2">
+                <div className="w-7 h-7 bg-[#f3e8ff] rounded-full flex items-center justify-center flex-shrink-0">
+                  <span className="text-[10px] font-semibold text-[#7e22ce]">{initials(order.user_name)}</span>
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-[#0f172a] leading-4">{order.user_name || '—'}</p>
+                  <p className="text-[10px] text-[#94a3b8] leading-4">{order.user_email || '—'}</p>
+                </div>
+              </div>
+              <div className="flex-1 px-4 py-4 text-center">
+                <span className="text-xs font-medium text-[#334155] line-clamp-2 leading-4">{order.video_title || '—'}</span>
+              </div>
+              <div className="w-[100px] px-4 py-4 text-center">
+                <span className="text-xs font-semibold text-[#0f172a]">₹{order.amount_inr.toLocaleString('en-IN')}</span>
+              </div>
+              <div className="w-[110px] px-4 py-4 text-center">
+                <span className="text-xs text-[#64748b] capitalize">{order.payment_gateway || '—'}</span>
+              </div>
+              <div className="w-[120px] px-4 py-4 text-center">
+                <p className="text-[11px] text-[#475569]">{formatDate(order.created_at)}</p>
+                <p className="text-[10px] text-[#94a3b8]">{formatTime(order.created_at)}</p>
+              </div>
+              <div className="w-[100px] px-4 py-4 flex justify-center">
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold capitalize ${STATUS_STYLES[order.status] || 'bg-gray-100 text-gray-500'}`}>
+                  {order.status}
+                </span>
+              </div>
+              <div className="w-[80px] px-4 py-3 flex justify-center">
+                <div className="relative">
+                  <button onClick={() => setOpenMenuId(openMenuId === order.id ? null : order.id)} className="p-1 hover:bg-gray-100 rounded">
+                    <img src="/icons/menu-dots-icon.svg" alt="Actions" className="w-4 h-4" />
+                  </button>
+                  <ActionMenu
+                    isOpen={openMenuId === order.id}
+                    onClose={() => setOpenMenuId(null)}
+                    options={[
+                      { label: 'View Details', onClick: () => { setToView(order); setViewModalOpen(true); setOpenMenuId(null) } },
+                      { label: 'Delete', onClick: () => { setToDelete(order); setDeleteModalOpen(true); setOpenMenuId(null) }, className: 'text-[#ef4444] hover:bg-[#fef2f2]' },
+                    ]}
+                  />
+                </div>
+              </div>
+            </div>
+          ))
+        )}
 
         {/* Pagination */}
-        <div className="border-t border-[#f1f5f9] px-3 py-[12.5px] flex items-center justify-between">
-          <span className="text-xs text-[#64748b] leading-4">Showing 1 to 10 of 512 orders</span>
-          <div className="flex items-center gap-1">
-            <button
-              onClick={handlePagination.previous}
-              className="w-7 h-7 border border-[#e2e8f0] rounded flex items-center justify-center p-px hover:bg-gray-50"
-            >
-              <img src="/icons/chevron-left-small.svg" alt="" className="w-[14px] h-[14px]" />
-            </button>
-            <button
-              onClick={() => handlePagination.goToPage(1)}
-              className="w-7 h-7 bg-[#7f28bc] rounded flex items-center justify-center text-xs font-semibold text-white leading-4"
-            >
-              1
-            </button>
-            <button
-              onClick={() => handlePagination.goToPage(2)}
-              className="w-7 h-7 rounded flex items-center justify-center text-xs text-[#475569] leading-4 hover:bg-gray-100"
-            >
-              2
-            </button>
-            <button
-              onClick={() => handlePagination.goToPage(3)}
-              className="w-7 h-7 rounded flex items-center justify-center text-xs text-[#475569] leading-4 hover:bg-gray-100"
-            >
-              3
-            </button>
-            <button
-              onClick={() => handlePagination.goToPage(4)}
-              className="w-7 h-7 rounded flex items-center justify-center text-xs text-[#475569] leading-4 hover:bg-gray-100"
-            >
-              4
-            </button>
-            <button
-              onClick={() => handlePagination.goToPage(5)}
-              className="w-7 h-7 rounded flex items-center justify-center text-xs text-[#475569] leading-4 hover:bg-gray-100"
-            >
-              5
-            </button>
-            <button
-              onClick={handlePagination.next}
-              className="w-7 h-7 border border-[#e2e8f0] rounded flex items-center justify-center p-px hover:bg-gray-50"
-            >
-              <img src="/icons/chevron-right-small.svg" alt="" className="w-[14px] h-[14px]" />
-            </button>
+        {!loading && pagination.total > 0 && (
+          <div className="border-t border-[#f1f5f9] px-4 py-3 flex items-center justify-between">
+            <span className="text-xs text-[#64748b]">
+              Showing <span className="font-medium text-[#334155]">{start}–{end}</span> of <span className="font-medium text-[#334155]">{pagination.total}</span>
+            </span>
+            <div className="flex items-center gap-1">
+              <button onClick={() => onPageChange(pagination.page - 1)} disabled={pagination.page <= 1} className="w-7 h-7 border border-[#e2e8f0] rounded flex items-center justify-center hover:bg-gray-50 disabled:opacity-40">
+                <img src="/icons/chevron-left-icon.svg" alt="" className="w-[14px] h-[14px]" />
+              </button>
+              {pageNums().map(p => (
+                <button key={p} onClick={() => onPageChange(p)} className={`w-7 h-7 rounded flex items-center justify-center text-xs font-semibold ${p === pagination.page ? 'bg-[#7f28bc] text-white' : 'border border-[#e2e8f0] text-gray-700 hover:bg-gray-50'}`}>{p}</button>
+              ))}
+              <button onClick={() => onPageChange(pagination.page + 1)} disabled={pagination.page >= pagination.totalPages} className="w-7 h-7 border border-[#e2e8f0] rounded flex items-center justify-center hover:bg-gray-50 disabled:opacity-40">
+                <img src="/icons/chevron-right-icon.svg" alt="" className="w-[14px] h-[14px]" />
+              </button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
-      {/* Delete Confirmation Modal */}
       <DeleteConfirmModal
         isOpen={deleteModalOpen}
-        onClose={() => {
-          setDeleteModalOpen(false)
-          setOrderToDelete(null)
-        }}
-        onConfirm={handleDeleteConfirm}
+        onClose={() => { setDeleteModalOpen(false); setToDelete(null) }}
+        onConfirm={() => { if (toDelete) { onDelete(toDelete.id); setToDelete(null) } }}
         title="Delete Order"
-        message="Are you sure you want to delete order"
-        itemName={orderToDelete?.id || ''}
+        message="Are you sure you want to delete this order for"
+        itemName={toDelete?.user_name || toDelete?.id || ''}
       />
-
-      {/* View Order Modal */}
-      <ViewOrderModal
-        isOpen={viewModalOpen}
-        onClose={() => {
-          setViewModalOpen(false)
-          setOrderToView(null)
-        }}
-        data={orderToView}
-      />
-    </div>
+      <ViewOrderModal isOpen={viewModalOpen} onClose={() => { setViewModalOpen(false); setToView(null) }} data={toView} />
+    </>
   )
 }

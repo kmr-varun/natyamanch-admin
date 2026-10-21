@@ -6,6 +6,7 @@ import Dashboard from './pages/Dashboard'
 import Users from './pages/Users'
 import Videos from './pages/Videos'
 import AddVideo from './pages/AddVideo'
+import EditVideo from './pages/EditVideo'
 import Categories from './pages/Categories'
 import Subscriptions from './pages/Subscriptions'
 import SubscriptionPlans from './pages/SubscriptionPlans'
@@ -39,6 +40,7 @@ function AppRoutes() {
         <Route path="users" element={<Users />} />
         <Route path="videos" element={<Videos />} />
         <Route path="videos/add" element={<AddVideo />} />
+        <Route path="videos/edit/:id" element={<EditVideo />} />
         <Route path="categories" element={<Categories />} />
         <Route path="subscriptions" element={<Subscriptions />} />
         <Route path="subscription-plans" element={<SubscriptionPlans />} />

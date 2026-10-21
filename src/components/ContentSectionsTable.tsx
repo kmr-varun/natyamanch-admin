@@ -1,0 +1,138 @@
+import { useState } from 'react'
+import { ActionMenu, DeleteConfirmModal } from './shared'
+import type { AdminContent } from '../lib/api'
+
+interface Props {
+  sections: AdminContent[]
+  loading: boolean
+  onEdit: (s: AdminContent) => void
+  onDelete: (key: string) => void
+}
+
+const TYPE_LABELS: Record<string, { label: string; color: string }> = {
+  json_array:  { label: 'Array',  color: 'bg-[#eff6ff] text-[#2563eb]' },
+  json_object: { label: 'Object', color: 'bg-[#f3e8ff] text-[#7e22ce]' },
+  html:        { label: 'HTML',   color: 'bg-[#fff7ed] text-[#c2410c]' },
+  text:        { label: 'Text',   color: 'bg-[#f0fdf4] text-[#15803d]' },
+}
+
+function formatDate(d: string) {
+  return new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+}
+
+function previewContent(content: string, type: string): string {
+  try {
+    const parsed = JSON.parse(content)
+    if (type === 'json_array') return `${(parsed as unknown[]).length} item${(parsed as unknown[]).length !== 1 ? 's' : ''}`
+    if (type === 'json_object') return Object.keys(parsed as object).slice(0, 3).join(', ') + '…'
+  } catch {}
+  return content.slice(0, 60) + (content.length > 60 ? '…' : '')
+}
+
+export default function ContentSectionsTable({ sections, loading, onEdit, onDelete }: Props) {
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null)
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+  const [toDelete, setToDelete] = useState<AdminContent | null>(null)
+
+  return (
+    <>
+      <div className="bg-white border border-[rgba(226,232,240,0.9)] rounded-xl shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] overflow-hidden">
+        {/* Header */}
+        <div className="bg-[rgba(248,250,252,0.6)] border-b border-[#f1f5f9] flex items-center">
+          {[
+            { label: '#',          w: 'w-10' },
+            { label: 'Section',    w: 'flex-1 min-w-[200px]' },
+            { label: 'Key',        w: 'w-[180px]' },
+            { label: 'Type',       w: 'w-[100px]' },
+            { label: 'Content',    w: 'w-[220px]' },
+            { label: 'Status',     w: 'w-[90px]' },
+            { label: 'Updated',    w: 'w-[110px]' },
+            { label: 'Actions',    w: 'w-[130px]' },
+          ].map(col => (
+            <div key={col.label} className={`${col.w} px-4 py-4 text-center`}>
+              <span className="text-[11px] font-bold text-[#434343] tracking-[0.55px] uppercase">{col.label}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Body */}
+        {loading ? (
+          Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="flex items-center border-b border-[#f8f2fa] px-2 py-4 gap-3">
+              <div className="w-10 flex justify-center"><div className="h-3 w-5 bg-gray-100 rounded animate-pulse" /></div>
+              <div className="flex-1 flex flex-col gap-1"><div className="h-3 w-40 bg-gray-100 rounded animate-pulse" /><div className="h-2.5 w-28 bg-gray-100 rounded animate-pulse" /></div>
+              {[160, 80, 180, 60, 90, 90].map((w, j) => (
+                <div key={j} style={{ width: w }} className="flex justify-center">
+                  <div className="h-3 bg-gray-100 rounded animate-pulse w-full" />
+                </div>
+              ))}
+            </div>
+          ))
+        ) : sections.length === 0 ? (
+          <div className="py-16 text-center text-sm text-gray-400">No content sections found.</div>
+        ) : (
+          sections.map((section, index) => {
+            const typeStyle = TYPE_LABELS[section.content_type] || { label: section.content_type, color: 'bg-gray-100 text-gray-600' }
+            return (
+              <div key={section.id} className="flex items-center border-b border-[#f8f2fa] last:border-b-0 hover:bg-[#fdfaff] transition-colors">
+                <div className="w-10 px-4 py-4 text-center">
+                  <span className="text-xs text-[#94a3b8]">{String(index + 1).padStart(2, '0')}</span>
+                </div>
+                <div className="flex-1 min-w-[200px] px-4 py-3">
+                  <p className="text-xs font-semibold text-[#0f172a] leading-4">{section.title}</p>
+                  {section.description && <p className="text-[10px] text-[#94a3b8] leading-4 mt-0.5">{section.description}</p>}
+                </div>
+                <div className="w-[180px] px-4 py-4 text-center">
+                  <code className="text-[10px] font-mono text-[#7f28bc] bg-[#faf5ff] px-1.5 py-0.5 rounded">{section.section_key}</code>
+                </div>
+                <div className="w-[100px] px-4 py-4 flex justify-center">
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${typeStyle.color}`}>{typeStyle.label}</span>
+                </div>
+                <div className="w-[220px] px-4 py-4 text-center">
+                  <span className="text-[11px] text-[#64748b] font-mono">{previewContent(section.content, section.content_type)}</span>
+                </div>
+                <div className="w-[90px] px-4 py-4 flex justify-center">
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${section.is_active ? 'bg-[#ecfdf5] text-[#059669]' : 'bg-gray-100 text-gray-500'}`}>
+                    {section.is_active ? 'Active' : 'Inactive'}
+                  </span>
+                </div>
+                <div className="w-[110px] px-4 py-4 text-center">
+                  <span className="text-[11px] text-[#64748b]">{formatDate(section.updated_at)}</span>
+                </div>
+                <div className="w-[130px] px-4 py-3 flex items-center justify-center gap-2">
+                  <button
+                    onClick={() => onEdit(section)}
+                    className="h-7 px-3 bg-[#7f28bc] rounded-lg text-[11px] font-semibold text-white hover:bg-[#6d1fa3] transition-colors"
+                  >
+                    Edit
+                  </button>
+                  <div className="relative">
+                    <button onClick={() => setOpenMenuId(openMenuId === section.id ? null : section.id)} className="p-1 hover:bg-gray-100 rounded">
+                      <img src="/icons/menu-dots-icon.svg" alt="Actions" className="w-4 h-4" />
+                    </button>
+                    <ActionMenu
+                      isOpen={openMenuId === section.id}
+                      onClose={() => setOpenMenuId(null)}
+                      options={[
+                        { label: 'Delete', onClick: () => { setToDelete(section); setDeleteModalOpen(true); setOpenMenuId(null) }, className: 'text-[#ef4444] hover:bg-[#fef2f2]' },
+                      ]}
+                    />
+                  </div>
+                </div>
+              </div>
+            )
+          })
+        )}
+      </div>
+
+      <DeleteConfirmModal
+        isOpen={deleteModalOpen}
+        onClose={() => { setDeleteModalOpen(false); setToDelete(null) }}
+        onConfirm={() => { if (toDelete) { onDelete(toDelete.section_key); setToDelete(null) } }}
+        title="Delete Content Section"
+        message="Are you sure you want to delete the section"
+        itemName={toDelete?.title || ''}
+      />
+    </>
+  )
+}

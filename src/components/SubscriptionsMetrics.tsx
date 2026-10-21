@@ -1,43 +1,41 @@
 import { MetricCard } from './shared'
+import type { SubscriptionStats } from '../lib/api'
 
-export default function SubscriptionsMetrics() {
+interface Props {
+  stats: SubscriptionStats | null
+}
+
+export default function SubscriptionsMetrics({ stats }: Props) {
   return (
     <div className="flex gap-2">
       <MetricCard
         icon="/icons/crown-icon.svg"
         iconBg="bg-[#faf5ff]"
         title="Total Subscriptions"
-        value="486"
-        subtitle="+14% this month"
-        showArrow
+        value={stats ? String(stats.total) : '—'}
         width="w-[182px]"
       />
       <MetricCard
-        icon={<img src="/icons/shield-check-gradient.svg" alt="" className="w-full h-full" />}
-        iconBg="bg-transparent"
-        title="Active Subscriptions"
-        value="402"
-        subtitle="+8% this month"
-        showArrow
-        customIcon
-        width="w-[197px]"
+        icon="/icons/check-circle-icon.svg"
+        iconBg="bg-[#ecfdf5]"
+        title="Active"
+        value={stats ? String(stats.active) : '—'}
         height="h-[82px]"
       />
       <MetricCard
-        icon={<img src="/icons/clock-gradient.svg" alt="" className="w-full h-full" />}
-        iconBg="bg-transparent"
+        icon="/icons/clock-icon.svg"
+        iconBg="bg-[#fffbeb]"
         title="Expiring Soon"
-        value="56"
-        subtitle="(within 30 days)"
+        value={stats ? String(stats.expiring_soon) : '—'}
+        subtitle="within 30 days"
         subtitleColor="text-[#94a3b8]"
-        customIcon
         height="h-[82px]"
       />
       <MetricCard
         icon="/icons/archive-icon.svg"
         iconBg="bg-[#fff1f2]"
         title="Expired / Cancelled"
-        value="28"
+        value={stats ? String(stats.expired + stats.cancelled) : '—'}
         height="h-[82px]"
       />
     </div>

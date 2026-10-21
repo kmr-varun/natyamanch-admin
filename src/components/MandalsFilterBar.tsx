@@ -1,32 +1,40 @@
-import { SearchInput, Dropdown, Button } from './shared'
-import { handleFilter } from '../utils/mockHandlers'
+import { useState } from 'react'
 
-export default function MandalsFilterBar() {
+interface Props {
+  onSearch: (q: string) => void
+  onStatusFilter: (s: string) => void
+}
+
+const STATUS_OPTIONS = [
+  { value: '', label: 'All Statuses' },
+  { value: 'active', label: 'Active' },
+  { value: 'expired', label: 'Expired' },
+  { value: 'inactive', label: 'Inactive' },
+]
+
+export default function MandalsFilterBar({ onSearch, onStatusFilter }: Props) {
+  const [status, setStatus] = useState('')
 
   return (
-    <div className="bg-white border border-[rgba(226,232,240,0.8)] rounded-xl p-[13px] flex items-center justify-end gap-4 shadow-[0px_1px_1px_rgba(0,0,0,0.05)]">
-      <SearchInput placeholder="Search" className="w-[304px]" />
-
-      <div className="flex items-center gap-3">
-        <Dropdown
-          options={['100 Account Plan', '50 Account Plan']}
-          placeholder="All Plans"
-          height="h-[30px]"
-          iconType="arrow"
+    <div className="flex items-center gap-3">
+      <div className="flex-1 relative">
+        <img src="/icons/search-icon.svg" alt="" className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" />
+        <input
+          type="text"
+          placeholder="Search mandals by name or email…"
+          onChange={e => onSearch(e.target.value)}
+          className="w-full h-9 pl-9 pr-3 bg-white border border-[#e2e8f0] rounded-lg text-sm text-[#1e293b] placeholder:text-[#94a3b8] focus:outline-none focus:border-[#7f28bc]"
         />
-        <Dropdown
-          options={['Active', 'Expiring Soon', 'Inactive']}
-          placeholder="All Status"
-          height="h-[30px]"
-          iconType="arrow"
-        />
-        <Dropdown
-          options={['USA', 'India', 'UK']}
-          placeholder="All Countries"
-          height="h-[30px]"
-          iconType="arrow"
-        />
-        <Button onClick={() => handleFilter.clear()} variant="text">Reset</Button>
+      </div>
+      <div className="relative h-9 w-[160px]">
+        <select
+          value={status}
+          onChange={e => { setStatus(e.target.value); onStatusFilter(e.target.value) }}
+          className="w-full h-full px-3 bg-white border border-[#e2e8f0] rounded-lg text-sm text-[#1e293b] appearance-none focus:outline-none focus:border-[#7f28bc]"
+        >
+          {STATUS_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+        </select>
+        <img src="/icons/chevron-down-icon.svg" alt="" className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" />
       </div>
     </div>
   )

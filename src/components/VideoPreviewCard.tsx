@@ -1,93 +1,90 @@
-import { useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
+import { useVideoForm } from '../contexts/VideoFormContext'
+import { videosApi } from '../lib/api'
+
+const CF_SUBDOMAIN = 'customer-w1lqmmjxo1pu5rut'
+
+type CFState = 'idle' | 'checking' | 'processing' | 'ready' | 'error'
 
 export default function VideoPreviewCard() {
-  const [thumbnail, setThumbnail] = useState<string | null>(null)
-  const [trailer, setTrailer] = useState<string | null>(null)
+  const form = useVideoForm()
+  const [cfState, setCfState] = useState<CFState>('idle')
+  const pollTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const lastCheckedId = useRef<string>('')
 
-  const handleThumbnailUpload = () => {
-    const input = document.createElement('input')
-    input.type = 'file'
-    input.accept = 'image/*'
-    input.onchange = (e: any) => {
-      const file = e.target?.files?.[0]
-      if (file) {
-        const reader = new FileReader()
-        reader.onload = (e) => {
-          setThumbnail(e.target?.result as string)
-          alert('Thumbnail uploaded successfully! ✓')
+  useEffect(() => {
+    if (!form.cloudflareVideoId) {
+      setCfState('idle')
+      lastCheckedId.current = ''
+      if (pollTimer.current) clearTimeout(pollTimer.current)
+      return
+    }
+
+    if (form.cloudflareVideoId === lastCheckedId.current && cfState === 'ready') return
+
+    const check = async (id: string) => {
+      try {
+        setCfState('checking')
+        const res = await videosApi.cloudflareStatus(id)
+        if (!res.video) { setCfState('error'); return }
+        if (res.video.readyToStream) {
+          setCfState('ready')
+          lastCheckedId.current = id
+        } else {
+          setCfState('processing')
+          pollTimer.current = setTimeout(() => check(id), 4000)
         }
-        reader.readAsDataURL(file)
+      } catch {
+        setCfState('error')
       }
     }
-    input.click()
-  }
 
-  const handleTrailerUpload = () => {
-    const input = document.createElement('input')
-    input.type = 'file'
-    input.accept = 'video/*'
-    input.onchange = (e: any) => {
-      const file = e.target?.files?.[0]
-      if (file) {
-        setTrailer(file.name)
-        alert(`Trailer uploaded successfully! ✓\n\nFile: ${file.name}`)
-      }
-    }
-    input.click()
-  }
+    if (pollTimer.current) clearTimeout(pollTimer.current)
+    check(form.cloudflareVideoId)
+
+    return () => { if (pollTimer.current) clearTimeout(pollTimer.current) }
+  }, [form.cloudflareVideoId])
 
   return (
     <div className="bg-white rounded-lg shadow-sm p-6 flex flex-col gap-4">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-bold text-[#0b1c30] leading-[26px]">
-          Video Preview
-        </h2>
-      </div>
+      <h2 className="text-lg font-bold text-[#0b1c30] leading-[26px]">Video Preview</h2>
 
-      {/* Upload Area */}
-      <div className="w-full h-[263px] bg-gradient-to-b from-[#f8f9ff] to-[#f8efff] rounded-lg flex flex-col items-center justify-center px-6 py-[141px] relative">
-        {thumbnail && (
-          <img src={thumbnail} alt="Thumbnail" className="absolute inset-0 w-full h-full object-cover rounded-lg" />
-        )}
-        {!thumbnail && (
-          <>
-            {/* Upload Icon */}
-            <div className="w-14 h-14 bg-[#7f28bc] rounded-full flex items-center justify-center shadow-lg mb-3">
-              <img src="/icons/upload-cloud.svg" alt="" className="w-[25.667px] h-[18.667px]" />
-            </div>
-
-            {/* Upload Text */}
-            <h3 className="text-lg font-semibold text-[#0b1c30] text-center leading-[26px] mb-4">
-              Upload Video
-            </h3>
-          </>
-        )}
-
-        {/* Action Buttons */}
-        <div className={`flex items-center gap-3 mb-3 ${thumbnail ? 'absolute bottom-4' : ''}`}>
-          <button onClick={handleThumbnailUpload} className="flex items-center gap-1.5 px-4 py-2 bg-white border border-[#7f28bc] rounded text-xs font-medium text-[#7f28bc] tracking-[0.24px] shadow-sm hover:bg-[#f7ecff] transition-colors">
-            <img src="/icons/image-icon.svg" alt="" className="w-[13.5px] h-[13.5px]" />
-            {thumbnail ? 'Change Thumbnail' : 'Upload Thumbnail'}
-          </button>
-          <button onClick={handleTrailerUpload} className="flex items-center gap-1.5 px-4 py-2 bg-white border border-[#7f28bc] rounded text-xs font-medium text-[#7f28bc] tracking-[0.24px] shadow-sm hover:bg-[#f7ecff] transition-colors">
-            <img src="/icons/video-icon.svg" alt="" className="w-[15px] h-3" />
-            {trailer ? 'Change Trailer' : 'Upload Trailer'}
-          </button>
-        </div>
-
-        {/* Help Text */}
-        {!thumbnail && (
+      {!form.cloudflareVideoId ? (
+        <div className="w-full h-[263px] bg-gradient-to-b from-[#f8f9ff] to-[#f8efff] rounded-lg flex flex-col items-center justify-center gap-3">
+          <div className="w-14 h-14 bg-[#7f28bc] rounded-full flex items-center justify-center shadow-lg">
+            <img src="/icons/upload-cloud.svg" alt="" className="w-[25.667px] h-[18.667px]" />
+          </div>
+          <h3 className="text-lg font-semibold text-[#0b1c30] text-center leading-[26px]">Video Preview</h3>
           <p className="text-xs text-[#7d7481] text-center leading-[18px]">
-            Recommended: 16:9 Cinema Scope • ProRes / MP4 / HLS • Up to 4K Master
+            Upload a video in CloudStream Settings to see a preview here
           </p>
-        )}
-        {trailer && (
-          <p className="text-xs text-green-600 text-center mt-2">
-            Trailer: {trailer}
-          </p>
-        )}
-      </div>
+        </div>
+      ) : cfState === 'ready' ? (
+        <>
+          <div className="aspect-video rounded-lg overflow-hidden bg-black">
+            <iframe
+              src={`https://${CF_SUBDOMAIN}.cloudflarestream.com/${form.cloudflareVideoId}/iframe`}
+              className="w-full h-full"
+              allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
+              allowFullScreen
+            />
+          </div>
+          <p className="text-[10px] text-[#94a3b8] text-center font-mono">{form.cloudflareVideoId}</p>
+        </>
+      ) : cfState === 'processing' || cfState === 'checking' ? (
+        <div className="aspect-video rounded-lg bg-[#0f0f0f] flex flex-col items-center justify-center gap-3">
+          <div className="w-10 h-10 border-2 border-[#7f28bc] border-t-transparent rounded-full animate-spin" />
+          <p className="text-sm text-white font-medium">Processing video…</p>
+          <p className="text-[11px] text-[#94a3b8]">Cloudflare is encoding your video. This usually takes a minute.</p>
+          <p className="text-[10px] font-mono text-[#4a4a5a] mt-1">{form.cloudflareVideoId}</p>
+        </div>
+      ) : (
+        <div className="aspect-video rounded-lg bg-[#1a0a0a] flex flex-col items-center justify-center gap-2">
+          <p className="text-sm text-[#ef4444]">Could not load video status</p>
+          <p className="text-[11px] text-[#94a3b8]">Check that Cloudflare Stream is configured correctly</p>
+          <p className="text-[10px] font-mono text-[#6a4a4a] mt-1">{form.cloudflareVideoId}</p>
+        </div>
+      )}
     </div>
   )
 }

@@ -1,173 +1,108 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import CategoriesMetrics from '../components/CategoriesMetrics'
 import CategoriesFilterBar from '../components/CategoriesFilterBar'
 import CategoriesTable from '../components/CategoriesTable'
 import CategoryEditDrawer from '../components/CategoryEditDrawer'
-import { PageContainer, TwoColumnLayout, Button } from '../components/shared'
+import { PageContainer, Button } from '../components/shared'
+import { categoriesApi, type AdminCategory, type CategoryBody } from '../lib/api'
 
-interface Category {
-  id: number
-  name: string
-  slug: string
-  videoCount: number
-  status: string
-  displayOrder: number
-  description?: string
-  image?: string
-  parentCategory?: string
-}
-
-const initialCategories: Category[] = Array.from({ length: 12 }, (_, i) => ({
-  id: i + 1,
-  name: 'Marathi Drama',
-  slug: 'marathi-drama',
-  videoCount: 24,
-  status: 'Active',
-  displayOrder: i + 1,
-  description: 'Traditional Marathi drama performances',
-}))
+export type { CategoryBody }
 
 export default function Categories() {
-  const [categories, setCategories] = useState<Category[]>(initialCategories)
-  const [filteredCategories, setFilteredCategories] = useState<Category[]>(initialCategories)
-  const [drawerOpen, setDrawerOpen] = useState(false)
-  const [drawerMode, setDrawerMode] = useState<'add' | 'edit'>('add')
-  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null)
-  const [searchQuery, setSearchQuery] = useState('')
-  const [statusFilter, setStatusFilter] = useState('')
-  const [sortBy, setSortBy] = useState('')
+  const [categories, setCategories] = useState<AdminCategory[]>([])
+  const [filtered, setFiltered] = useState<AdminCategory[]>([])
+  const [loading, setLoading] = useState(true)
+  const [deleteError, setDeleteError] = useState('')
+  const [modalOpen, setModalOpen] = useState(false)
+  const [modalMode, setModalMode] = useState<'add' | 'edit'>('add')
+  const [selected, setSelected] = useState<AdminCategory | null>(null)
+  const searchRef = useRef('')
+  const statusRef = useRef('')
 
-  const handleAddCategory = () => {
-    setDrawerMode('add')
-    setSelectedCategory(null)
-    setDrawerOpen(true)
-  }
-
-  const handleEditCategory = (category: Category) => {
-    setDrawerMode('edit')
-    setSelectedCategory(category)
-    setDrawerOpen(true)
-  }
-
-  const handleSaveCategory = (categoryData: Partial<Category>) => {
-    if (drawerMode === 'add') {
-      const newCategory: Category = {
-        id: Math.max(...categories.map(c => c.id)) + 1,
-        name: categoryData.name || '',
-        slug: categoryData.slug || '',
-        videoCount: 0,
-        status: categoryData.status || 'Active',
-        displayOrder: categories.length + 1,
-        description: categoryData.description,
-        image: categoryData.image,
-        parentCategory: categoryData.parentCategory,
-      }
-      const updated = [newCategory, ...categories]
-      setCategories(updated)
-      applyFilters(updated, searchQuery, statusFilter, sortBy)
-    } else if (selectedCategory) {
-      const updated = categories.map(c =>
-        c.id === selectedCategory.id ? { ...c, ...categoryData } : c
-      )
-      setCategories(updated)
-      applyFilters(updated, searchQuery, statusFilter, sortBy)
+  const loadCategories = async () => {
+    try {
+      const res = await categoriesApi.list()
+      setCategories(res.categories)
+      applyFilters(res.categories, searchRef.current, statusRef.current)
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setLoading(false)
     }
-    setDrawerOpen(false)
   }
 
-  const handleDeleteCategory = (categoryId: number) => {
-    const updated = categories.filter(c => c.id !== categoryId)
-    setCategories(updated)
-    applyFilters(updated, searchQuery, statusFilter, sortBy)
+  useEffect(() => { loadCategories() }, [])
+
+  const applyFilters = (list: AdminCategory[], q: string, status: string) => {
+    let result = list
+    if (q) result = result.filter(c => c.name.toLowerCase().includes(q.toLowerCase()) || c.slug.toLowerCase().includes(q.toLowerCase()))
+    if (status === 'active') result = result.filter(c => c.is_active === 1)
+    if (status === 'inactive') result = result.filter(c => c.is_active === 0)
+    setFiltered(result)
   }
 
-  const handleSearch = (query: string) => {
-    setSearchQuery(query)
-    applyFilters(categories, query, statusFilter, sortBy)
-  }
+  const handleSearch = (q: string) => { searchRef.current = q; applyFilters(categories, q, statusRef.current) }
+  const handleStatusFilter = (s: string) => { statusRef.current = s; applyFilters(categories, searchRef.current, s) }
+  const handleSort = (_: string) => {}
 
-  const handleStatusFilter = (status: string) => {
-    setStatusFilter(status)
-    applyFilters(categories, searchQuery, status, sortBy)
-  }
-
-  const handleSort = (sort: string) => {
-    setSortBy(sort)
-    applyFilters(categories, searchQuery, statusFilter, sort)
-  }
-
-  const applyFilters = (categoryList: Category[], query: string, status: string, sort: string) => {
-    let filtered = categoryList
-
-    // Apply search filter
-    if (query) {
-      filtered = filtered.filter(category =>
-        category.name.toLowerCase().includes(query.toLowerCase()) ||
-        category.slug.toLowerCase().includes(query.toLowerCase())
-      )
+  const handleSave = async (body: CategoryBody) => {
+    if (modalMode === 'add') {
+      await categoriesApi.create({ ...body, name: body.name! })
+    } else if (selected) {
+      await categoriesApi.update(selected.id, body)
     }
-
-    // Apply status filter
-    if (status) {
-      filtered = filtered.filter(category => category.status === status)
-    }
-
-    // Apply sorting
-    if (sort) {
-      filtered = [...filtered].sort((a, b) => {
-        if (sort === 'Name A-Z') return a.name.localeCompare(b.name)
-        if (sort === 'Name Z-A') return b.name.localeCompare(a.name)
-        if (sort === 'Newest First') return b.id - a.id
-        return 0
-      })
-    }
-
-    setFilteredCategories(filtered)
+    setModalOpen(false)
+    setSelected(null)
+    await loadCategories()
   }
+
+  const handleDelete = async (id: string) => {
+    setDeleteError('')
+    try {
+      await categoriesApi.delete(id)
+      await loadCategories()
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : 'Failed to delete category')
+    }
+  }
+
+  const openAdd = () => { setModalMode('add'); setSelected(null); setModalOpen(true) }
+  const openEdit = (cat: AdminCategory) => { setModalMode('edit'); setSelected(cat); setModalOpen(true) }
 
   return (
     <PageContainer>
-      <TwoColumnLayout
-        leftColumn={
-          <>
-            <CategoriesMetrics categories={categories} />
-            <CategoriesFilterBar
-              onSearch={handleSearch}
-              onStatusFilter={handleStatusFilter}
-              onSort={handleSort}
-            />
-            <CategoriesTable
-              categories={filteredCategories}
-              onEdit={handleEditCategory}
-              onDelete={handleDeleteCategory}
-            />
-          </>
-        }
-        rightColumn={
-          <>
-            <div className="flex justify-end">
-              <Button onClick={handleAddCategory} icon="/icons/plus-icon.svg">
-                Add New Category
-              </Button>
-            </div>
-            {drawerOpen && (
-              <CategoryEditDrawer
-                mode={drawerMode}
-                initialData={selectedCategory ? {
-                  name: selectedCategory.name,
-                  slug: selectedCategory.slug,
-                  description: selectedCategory.description || '',
-                  image: selectedCategory.image,
-                  parentCategory: selectedCategory.parentCategory,
-                  status: selectedCategory.status
-                } : undefined}
-                onSave={handleSaveCategory}
-                onCancel={() => setDrawerOpen(false)}
-              />
-            )}
-          </>
-        }
-      />
+      <div className="flex flex-col gap-6">
+        {/* Page header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-[#1d1b20] leading-8">Categories</h1>
+            <p className="text-sm text-[#64748b] mt-0.5">Manage your video categories</p>
+          </div>
+          <Button onClick={openAdd}>Add New Category</Button>
+        </div>
+
+        <CategoriesMetrics categories={categories} loading={loading} />
+
+        {deleteError && (
+          <div className="bg-[#fef2f2] border border-[#fecaca] rounded-lg px-4 py-3 text-sm text-[#ef4444]">
+            {deleteError}
+          </div>
+        )}
+
+        <CategoriesFilterBar onSearch={handleSearch} onStatusFilter={handleStatusFilter} onSort={handleSort} />
+
+        <CategoriesTable categories={filtered} loading={loading} onEdit={openEdit} onDelete={handleDelete} />
+      </div>
+
+      {/* Add / Edit modal */}
+      {modalOpen && (
+        <CategoryEditDrawer
+          mode={modalMode}
+          initialData={selected ?? undefined}
+          onSave={handleSave}
+          onCancel={() => { setModalOpen(false); setSelected(null) }}
+        />
+      )}
     </PageContainer>
   )
 }

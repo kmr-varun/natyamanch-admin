@@ -1,336 +1,168 @@
 import { useState } from 'react'
-import { handlePagination, handleTab } from '../utils/mockHandlers'
 import { ActionMenu, DeleteConfirmModal } from './shared'
 import ViewMandalModal from './ViewMandalModal'
+import type { AdminOrg, Pagination } from '../lib/api'
 
-interface Organization {
-  id: number
-  name: string
-  location: string
-  contact: string
-  email: string
-  phone: string
-  plan: string
-  price: string
-  members: string
-  validUntil: string
-  status: string
+interface Props {
+  orgs: AdminOrg[]
+  loading: boolean
+  pagination: Pagination
+  onPageChange: (page: number) => void
+  onDelete: (id: string) => void
+  onEdit: (org: AdminOrg) => void
 }
 
-const initialOrganizations: Organization[] = [
-    {
-      id: 1,
-      name: 'Marathi Mandal New Jersey',
-      location: 'USA',
-      contact: 'Rohan Deshpande',
-      email: 'rohan@mmnj.org',
-      phone: '+1 987 654 3210',
-      plan: '100 Account Plan',
-      price: '₹14,999 /year',
-      members: '78 / 100',
-      validUntil: '10 Aug 2027',
-      status: 'Active',
-    },
-    {
-      id: 2,
-      name: 'Marathi Mandal New Jersey',
-      location: 'USA',
-      contact: 'Rohan Deshpande',
-      email: 'rohan@mmnj.org',
-      phone: '+1 987 654 3210',
-      plan: '100 Account Plan',
-      price: '₹14,999 /year',
-      members: '78 / 100',
-      validUntil: '10 Aug 2027',
-      status: 'Active',
-    },
-    {
-      id: 3,
-      name: 'Marathi Mandal New Jersey',
-      location: 'USA',
-      contact: 'Rohan Deshpande',
-      email: 'rohan@mmnj.org',
-      phone: '+1 987 654 3210',
-      plan: '100 Account Plan',
-      price: '₹14,999 /year',
-      members: '78 / 100',
-      validUntil: '10 Aug 2027',
-      status: 'Active',
-    },
-    {
-      id: 4,
-      name: 'Marathi Mandal New Jersey',
-      location: 'USA',
-      contact: 'Rohan Deshpande',
-      email: 'rohan@mmnj.org',
-      phone: '+1 987 654 3210',
-      plan: '100 Account Plan',
-      price: '₹14,999 /year',
-      members: '78 / 100',
-      validUntil: '10 Aug 2027',
-      status: 'Active',
-    },
-    {
-      id: 5,
-      name: 'Marathi Mandal New Jersey',
-      location: 'USA',
-      contact: 'Rohan Deshpande',
-      email: 'rohan@mmnj.org',
-      phone: '+1 987 654 3210',
-      plan: '100 Account Plan',
-      price: '₹14,999 /year',
-      members: '78 / 100',
-      validUntil: '10 Aug 2027',
-      status: 'Active',
-    },
-  ]
-
-interface MandalsTableProps {
-  mandals?: any[]
+function formatDate(d?: string) {
+  if (!d) return '—'
+  return new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
-export default function MandalsTable({ mandals }: MandalsTableProps = {}) {
-  const [organizations, setOrganizations] = useState<Organization[]>(mandals || initialOrganizations)
-  const [openMenuId, setOpenMenuId] = useState<number | null>(null)
+const STATUS_STYLES: Record<string, string> = {
+  active:   'bg-[#ecfdf5] text-[#059669]',
+  expired:  'bg-gray-100 text-gray-500',
+  inactive: 'bg-[#fef2f2] text-[#ef4444]',
+}
+
+export default function MandalsTable({ orgs, loading, pagination, onPageChange, onDelete, onEdit }: Props) {
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null)
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
-  const [organizationToDelete, setOrganizationToDelete] = useState<Organization | null>(null)
+  const [toDelete, setToDelete] = useState<AdminOrg | null>(null)
   const [viewModalOpen, setViewModalOpen] = useState(false)
-  const [organizationToView, setOrganizationToView] = useState<Organization | null>(null)
+  const [toView, setToView] = useState<AdminOrg | null>(null)
 
-  const handleEdit = (organization: Organization) => {
-    console.log('Edit organization:', organization)
-    alert(`Edit organization: ${organization.name}\n\nIn production, this would open an edit form with the organization data pre-filled.`)
-  }
-
-  const handleView = (organization: Organization) => {
-    setOrganizationToView(organization)
-    setViewModalOpen(true)
-    setOpenMenuId(null)
-  }
-
-  const handleDeleteClick = (organization: Organization) => {
-    setOrganizationToDelete(organization)
-    setDeleteModalOpen(true)
-  }
-
-  const handleDeleteConfirm = () => {
-    if (organizationToDelete) {
-      setOrganizations(organizations.filter(o => o.id !== organizationToDelete.id))
-      console.log('Deleted organization:', organizationToDelete)
-      setOrganizationToDelete(null)
-    }
+  const start = (pagination.page - 1) * pagination.limit + 1
+  const end = Math.min(pagination.page * pagination.limit, pagination.total)
+  const pageNums = () => {
+    const nums: number[] = []
+    for (let i = Math.max(1, pagination.page - 2); i <= Math.min(pagination.totalPages, pagination.page + 2); i++) nums.push(i)
+    return nums
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      {/* Tabs */}
-      <div className="border-b border-[#e2e8f0]">
-        <div className="flex items-start gap-7 px-5 pt-[14px] pb-px">
-          <button
-            onClick={() => handleTab.switch('All Organizations')}
-            className="pb-[14px] border-b-2 border-[#7e22ce] text-sm font-semibold text-[#7e22ce] leading-4 hover:opacity-80"
-          >
-            All Organizations (28)
-          </button>
-          <button
-            onClick={() => handleTab.switch('Active')}
-            className="pb-[13.5px] pt-0.5 text-sm font-semibold text-[#64748b] leading-4 hover:text-[#7e22ce]"
-          >
-            Active (24)
-          </button>
-          <button
-            onClick={() => handleTab.switch('Expiring Soon')}
-            className="pb-[13.5px] pt-0.5 text-sm font-semibold text-[#64748b] leading-4 hover:text-[#7e22ce]"
-          >
-            Expiring Soon (3)
-          </button>
-          <button
-            onClick={() => handleTab.switch('Inactive')}
-            className="pb-[13.5px] pt-0.5 text-sm font-semibold text-[#64748b] leading-4 hover:text-[#7e22ce]"
-          >
-            Inactive (1)
-          </button>
-        </div>
-      </div>
-
-      {/* Table */}
-      <div className="bg-white border border-[rgba(226,232,240,0.9)] rounded-xl shadow-[0px_1px_1px_rgba(0,0,0,0.05)] overflow-hidden">
-        {/* Table Header */}
-        <div className="bg-[rgba(248,250,252,0.5)] border-b border-[#e2e8f0] flex items-start">
-          <div className="w-[38px] px-3 py-[17px] flex items-center justify-center">
-            <span className="text-[10px] font-bold text-[#4d4d4d] leading-[15px] tracking-[0.5px] uppercase">#</span>
-          </div>
-          <div className="w-[204px] px-[9px] py-2.5 flex items-center">
-            <span className="text-[10px] font-semibold text-[#4d4d4d] leading-[15px] tracking-[0.5px] uppercase">ORGANIZATION NAME</span>
-          </div>
-          <div className="w-[135px] px-3 py-[17px] flex items-center justify-center">
-            <span className="text-[10px] font-semibold text-[#4d4d4d] leading-[15px] tracking-[0.5px] uppercase">CONTACT PERSON</span>
-          </div>
-          <div className="w-[110px] px-3 py-[17px] flex items-center justify-center">
-            <span className="text-[10px] font-semibold text-[#4d4d4d] leading-[15px] tracking-[0.5px] uppercase">PLAN</span>
-          </div>
-          <div className="w-[75px] px-3 py-[17px] flex items-center justify-center">
-            <span className="text-[10px] font-semibold text-[#4d4d4d] leading-[15px] tracking-[0.5px] uppercase">MEMBERS</span>
-          </div>
-          <div className="w-[80px] px-3 py-2.5 flex items-center justify-center">
-            <span className="text-[10px] font-semibold text-[#4d4d4d] leading-[15px] tracking-[0.5px] uppercase text-center">VALID<br/>UNTIL</span>
-          </div>
-          <div className="w-[74px] px-3 py-[17px] flex items-center justify-center">
-            <span className="text-[10px] font-semibold text-[#4d4d4d] leading-[15px] tracking-[0.5px] uppercase text-center">STATUS</span>
-          </div>
-          <div className="flex-1 px-3 py-[17px] flex items-center justify-center">
-            <span className="text-[10px] font-semibold text-[#4d4d4d] leading-[15px] tracking-[0.5px] uppercase text-center">ACTIONS</span>
-          </div>
+    <>
+      <div className="bg-white border border-[rgba(226,232,240,0.9)] rounded-xl shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] overflow-hidden">
+        {/* Header */}
+        <div className="bg-[rgba(248,250,252,0.6)] border-b border-[#f1f5f9] flex items-center">
+          {[
+            { label: '#', w: 'w-10' },
+            { label: 'Organization', w: 'flex-1 min-w-[180px]' },
+            { label: 'Admin', w: 'w-[150px]' },
+            { label: 'Location', w: 'w-[120px]' },
+            { label: 'Seats', w: 'w-[100px]' },
+            { label: 'Sub. End', w: 'w-[110px]' },
+            { label: 'Status', w: 'w-[100px]' },
+            { label: 'Actions', w: 'w-[80px]' },
+          ].map(col => (
+            <div key={col.label} className={`${col.w} px-4 py-4 text-center`}>
+              <span className="text-[11px] font-bold text-[#434343] tracking-[0.55px] uppercase">{col.label}</span>
+            </div>
+          ))}
         </div>
 
-        {/* Table Body */}
-        <div className="flex flex-col gap-1">
-          {organizations.map((org) => (
-            <div key={org.id} className="flex items-center bg-[rgba(250,245,255,0.3)] h-[84px]">
-              {/* ID */}
-              <div className="w-[38px] px-3 flex items-center justify-center">
-                <span className="text-[11.5px] font-medium text-[#94a3b8] leading-[17.25px]">
-                  {String(org.id).padStart(2, '0')}
+        {/* Body */}
+        {loading ? (
+          Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="flex items-center border-b border-[#f8f2fa] px-2 py-4 gap-3">
+              <div className="w-10 flex justify-center"><div className="h-3 w-5 bg-gray-100 rounded animate-pulse" /></div>
+              <div className="flex-1 flex items-center gap-2">
+                <div className="w-7 h-7 bg-gray-100 rounded-full animate-pulse flex-shrink-0" />
+                <div className="flex flex-col gap-1"><div className="h-3 w-32 bg-gray-100 rounded animate-pulse" /><div className="h-2.5 w-24 bg-gray-100 rounded animate-pulse" /></div>
+              </div>
+              {[120, 100, 80, 90, 70, 50].map((w, j) => (
+                <div key={j} style={{ width: w }} className="flex justify-center">
+                  <div className="h-3 bg-gray-100 rounded animate-pulse w-full" />
+                </div>
+              ))}
+            </div>
+          ))
+        ) : orgs.length === 0 ? (
+          <div className="py-16 text-center text-sm text-gray-400">
+            No mandals found. Add one using the button above.
+          </div>
+        ) : (
+          orgs.map((org, index) => (
+            <div key={org.id} className="flex items-center border-b border-[#f8f2fa] last:border-b-0 hover:bg-[#fdfaff] transition-colors">
+              <div className="w-10 px-4 py-4 text-center">
+                <span className="text-xs text-[#94a3b8]">{String(start + index).padStart(2, '0')}</span>
+              </div>
+              <div className="flex-1 min-w-[180px] px-4 py-3 flex items-center gap-2">
+                <div className="w-7 h-7 bg-[#f3e8ff] rounded-full flex items-center justify-center flex-shrink-0">
+                  <span className="text-[10px] font-semibold text-[#7e22ce]">
+                    {org.name.slice(0, 2).toUpperCase()}
+                  </span>
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-[#0f172a] leading-4">{org.name}</p>
+                  {org.contact_email && <p className="text-[10px] text-[#94a3b8] leading-4">{org.contact_email}</p>}
+                </div>
+              </div>
+              <div className="w-[150px] px-4 py-4 text-center">
+                <p className="text-xs font-medium text-[#334155] truncate">{org.admin_name || '—'}</p>
+              </div>
+              <div className="w-[120px] px-4 py-4 text-center">
+                <span className="text-xs text-[#64748b]">{org.location || '—'}</span>
+              </div>
+              <div className="w-[100px] px-4 py-4 text-center">
+                <span className="text-xs font-semibold text-[#334155]">{org.seats_used}/{org.seats_total}</span>
+              </div>
+              <div className="w-[110px] px-4 py-4 text-center">
+                <span className="text-[11px] text-[#64748b]">{formatDate(org.subscription_end)}</span>
+              </div>
+              <div className="w-[100px] px-4 py-4 flex justify-center">
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold capitalize ${STATUS_STYLES[org.subscription_status] || 'bg-gray-100 text-gray-500'}`}>
+                  {org.subscription_status}
                 </span>
               </div>
-
-              {/* Organization Name */}
-              <div className="w-[204px] flex gap-2.5 items-center">
-                <div className="bg-[rgba(243,232,255,0.7)] border border-[#e9d5ff] rounded-lg w-8 h-8 flex items-center justify-center p-px flex-shrink-0">
-                  <img src="/icons/building-purple-icon.svg" alt="" className="w-4 h-4" />
-                </div>
-                <div className="flex flex-col gap-[5px]">
-                  <span className="text-xs font-medium text-[#0f172a] leading-[14.38px]">{org.name}</span>
-                  <span className="text-xs font-medium text-[#94a3b8] leading-[15px]">{org.location}</span>
-                </div>
-              </div>
-
-              {/* Contact Person */}
-              <div className="w-[135px] px-3 py-[31.19px] flex flex-col items-center justify-center">
-                <span className="text-xs font-medium text-[#1e293b] leading-[14.38px] text-center">{org.contact}</span>
-                <span className="text-xs font-light text-[#727374] leading-[15.75px] text-center">{org.email}</span>
-                <span className="text-xs font-light text-[#727374] leading-[15.75px] text-center">{org.phone}</span>
-              </div>
-
-              {/* Plan */}
-              <div className="w-[110px] px-3 flex flex-col items-center justify-center">
-                <span className="text-xs font-semibold text-[#1e293b] leading-[17.25px]">{org.plan}</span>
-                <span className="text-xs text-[#727374] leading-[15.75px] text-center">{org.price}</span>
-              </div>
-
-              {/* Members */}
-              <div className="w-[75px] px-3 flex items-center justify-center">
-                <span className="text-xs font-semibold text-[#1e293b] leading-[17.25px]">{org.members}</span>
-              </div>
-
-              {/* Valid Until */}
-              <div className="w-[80px] px-3 flex items-center justify-center">
-                <span className="text-xs font-medium text-[#64748b] leading-[17.25px] text-center">{org.validUntil}</span>
-              </div>
-
-              {/* Status */}
-              <div className="w-[74px] px-3 flex items-center justify-center">
-                <span className="px-2.5 py-0.5 bg-[#d1fae5] rounded-full text-xs font-semibold text-[#047857] leading-[15.75px]">
-                  {org.status}
-                </span>
-              </div>
-
-              {/* Actions */}
-              <div className="flex-1 px-3 flex items-center justify-center">
-                <div className="relative inline-block">
-                  <button
-                    onClick={() => setOpenMenuId(openMenuId === org.id ? null : org.id)}
-                    className="p-1 hover:bg-gray-100 rounded"
-                  >
-                    <img src="/icons/menu-three-dots.svg" alt="Actions" className="w-4 h-4" />
+              <div className="w-[80px] px-4 py-3 flex justify-center">
+                <div className="relative">
+                  <button onClick={() => setOpenMenuId(openMenuId === org.id ? null : org.id)} className="p-1 hover:bg-gray-100 rounded">
+                    <img src="/icons/menu-dots-icon.svg" alt="Actions" className="w-4 h-4" />
                   </button>
                   <ActionMenu
                     isOpen={openMenuId === org.id}
                     onClose={() => setOpenMenuId(null)}
                     options={[
-                      {
-                        label: 'View Details',
-                        onClick: () => handleView(org),
-                      },
-                      {
-                        label: 'Edit Organization',
-                        onClick: () => handleEdit(org),
-                      },
-                      {
-                        label: 'Delete',
-                        onClick: () => handleDeleteClick(org),
-                        className: 'text-[#ef4444] hover:bg-[#fef2f2]',
-                      },
+                      { label: 'View Details', onClick: () => { setToView(org); setViewModalOpen(true); setOpenMenuId(null) } },
+                      { label: 'Edit', onClick: () => { onEdit(org); setOpenMenuId(null) } },
+                      { label: 'Delete', onClick: () => { setToDelete(org); setDeleteModalOpen(true); setOpenMenuId(null) }, className: 'text-[#ef4444] hover:bg-[#fef2f2]' },
                     ]}
                   />
                 </div>
               </div>
             </div>
-          ))}
-        </div>
+          ))
+        )}
 
         {/* Pagination */}
-        <div className="bg-white border-t border-[rgba(226,232,240,0.8)] px-3 py-[12.5px] flex items-center justify-between rounded-bl-xl rounded-br-xl">
-          <span className="text-xs text-[#64748b] leading-4">
-            Showing 1 to 10 of 28 organizations
-          </span>
-          <div className="flex items-center gap-1">
-            <button
-              onClick={handlePagination.previous}
-              className="w-7 h-7 border border-[#e2e8f0] rounded flex items-center justify-center p-px hover:bg-gray-50"
-            >
-              <img src="/icons/chevron-left.svg" alt="" className="w-[14px] h-[14px]" />
-            </button>
-            <button
-              onClick={() => handlePagination.goToPage(1)}
-              className="w-7 h-7 bg-[#7f28bc] rounded flex items-center justify-center text-xs font-bold text-white leading-4"
-            >
-              1
-            </button>
-            <button
-              onClick={() => handlePagination.goToPage(2)}
-              className="w-7 h-7 border border-[#e2e8f0] rounded flex items-center justify-center text-xs font-medium text-[#475569] leading-4 hover:bg-gray-50"
-            >
-              2
-            </button>
-            <button
-              onClick={() => handlePagination.goToPage(3)}
-              className="w-7 h-7 border border-[#e2e8f0] rounded flex items-center justify-center text-xs font-medium text-[#475569] leading-4 hover:bg-gray-50"
-            >
-              3
-            </button>
-            <button
-              onClick={handlePagination.next}
-              className="w-7 h-7 border border-[#e2e8f0] rounded flex items-center justify-center p-px hover:bg-gray-50"
-            >
-              <img src="/icons/chevron-right.svg" alt="" className="w-[14px] h-[14px]" />
-            </button>
+        {!loading && pagination.total > 0 && (
+          <div className="border-t border-[#f1f5f9] px-4 py-3 flex items-center justify-between">
+            <span className="text-xs text-[#64748b]">
+              Showing <span className="font-medium text-[#334155]">{start}–{end}</span> of <span className="font-medium text-[#334155]">{pagination.total}</span>
+            </span>
+            <div className="flex items-center gap-1">
+              <button onClick={() => onPageChange(pagination.page - 1)} disabled={pagination.page <= 1} className="w-7 h-7 border border-[#e2e8f0] rounded flex items-center justify-center hover:bg-gray-50 disabled:opacity-40">
+                <img src="/icons/chevron-left-icon.svg" alt="" className="w-[14px] h-[14px]" />
+              </button>
+              {pageNums().map(p => (
+                <button key={p} onClick={() => onPageChange(p)} className={`w-7 h-7 rounded flex items-center justify-center text-xs font-semibold ${p === pagination.page ? 'bg-[#7f28bc] text-white' : 'border border-[#e2e8f0] text-gray-700 hover:bg-gray-50'}`}>{p}</button>
+              ))}
+              <button onClick={() => onPageChange(pagination.page + 1)} disabled={pagination.page >= pagination.totalPages} className="w-7 h-7 border border-[#e2e8f0] rounded flex items-center justify-center hover:bg-gray-50 disabled:opacity-40">
+                <img src="/icons/chevron-right-icon.svg" alt="" className="w-[14px] h-[14px]" />
+              </button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
-      {/* Delete Confirmation Modal */}
       <DeleteConfirmModal
         isOpen={deleteModalOpen}
-        onClose={() => {
-          setDeleteModalOpen(false)
-          setOrganizationToDelete(null)
-        }}
-        onConfirm={handleDeleteConfirm}
-        title="Delete Organization"
-        message="Are you sure you want to delete"
-        itemName={organizationToDelete?.name || ''}
+        onClose={() => { setDeleteModalOpen(false); setToDelete(null) }}
+        onConfirm={() => { if (toDelete) { onDelete(toDelete.id); setToDelete(null) } }}
+        title="Delete Mandal"
+        message="Are you sure you want to delete the mandal"
+        itemName={toDelete?.name || ''}
       />
-
-      {/* View Mandal Modal */}
-      <ViewMandalModal
-        isOpen={viewModalOpen}
-        onClose={() => {
-          setViewModalOpen(false)
-          setOrganizationToView(null)
-        }}
-        data={organizationToView}
-      />
-    </div>
+      <ViewMandalModal isOpen={viewModalOpen} onClose={() => { setViewModalOpen(false); setToView(null) }} data={toView} />
+    </>
   )
 }

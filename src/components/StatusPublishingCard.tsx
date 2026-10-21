@@ -1,70 +1,44 @@
-import { handleDropdownChange } from '../utils/mockHandlers'
+import { useVideoForm } from '../contexts/VideoFormContext'
 
 export default function StatusPublishingCard() {
+  const form = useVideoForm()
 
   return (
     <div className="bg-white rounded-xl border border-[#e2e8f0] p-[21px] flex flex-col gap-4">
-      {/* Header */}
-      <h2 className="text-base font-bold text-[#1e293b] leading-5">
-        Status & Publishing
-      </h2>
+      <h2 className="text-base font-bold text-[#1e293b] leading-5">Status & Publishing</h2>
 
-      {/* Status, Publish Date, Schedule Row */}
       <div className="flex gap-3">
         {/* Status */}
         <div className="flex-1 flex flex-col gap-1">
-          <label className="text-sm font-semibold text-[#334155] leading-[16.5px]">
-            Status
-          </label>
+          <label className="text-sm font-semibold text-[#334155] leading-[16.5px]">Status</label>
           <div className="relative h-10">
-            <select onChange={(e) => handleDropdownChange('Status', e.target.value)} className="w-full h-full px-[13px] py-2 bg-white border border-[#e2e8f0] rounded-lg text-xs text-[#334155] appearance-none focus:outline-none focus:border-[#7f28bc]">
-              <option>Draft</option>
-              <option>Published</option>
-              <option>Scheduled</option>
+            <select
+              value={form.isPublished ? 'published' : 'draft'}
+              onChange={e => form.setField('isPublished', e.target.value === 'published')}
+              className="w-full h-full px-[13px] py-2 bg-white border border-[#e2e8f0] rounded-lg text-xs text-[#334155] appearance-none focus:outline-none focus:border-[#7f28bc]"
+            >
+              <option value="draft">Draft</option>
+              <option value="published">Published</option>
             </select>
-            <img
-              src="/icons/chevron-down-small.svg"
-              alt=""
-              className="absolute right-[13px] top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
-            />
+            <img src="/icons/chevron-down-small.svg" alt="" className="absolute right-[13px] top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" />
           </div>
         </div>
 
-        {/* Publish Date */}
+        {/* Certification */}
         <div className="flex-1 flex flex-col gap-1">
-          <label className="text-sm font-semibold text-[#334155] leading-[16.5px]">
-            Publish Date
-          </label>
+          <label className="text-sm font-semibold text-[#334155] leading-[16.5px]">Certification</label>
           <div className="relative h-10">
-            <input
-              type="text"
-              defaultValue="12 Aug 2025"
-              className="w-full h-full px-[13px] py-2 bg-white border border-[#e2e8f0] rounded-lg text-xs text-[#334155] focus:outline-none focus:border-[#7f28bc]"
-            />
-            <img
-              src="/icons/calendar-icon.svg"
-              alt=""
-              className="absolute right-[9.83px] top-1/2 -translate-y-1/2 w-[10.5px] h-3 pointer-events-none"
-            />
-          </div>
-        </div>
-
-        {/* Schedule (Optional) */}
-        <div className="flex-1 flex flex-col gap-1">
-          <label className="text-sm font-semibold text-[#334155] leading-[16.5px]">
-            Schedule (Optional)
-          </label>
-          <div className="relative h-10">
-            <input
-              type="text"
-              placeholder="Select date & time"
-              className="w-full h-full px-[13px] py-2 bg-white border border-[#e2e8f0] rounded-lg text-xs text-[#6b7280] placeholder:text-[#6b7280] focus:outline-none focus:border-[#7f28bc]"
-            />
-            <img
-              src="/icons/calendar-icon.svg"
-              alt=""
-              className="absolute right-[8.5px] top-1/2 -translate-y-1/2 w-[10.5px] h-3 pointer-events-none"
-            />
+            <select
+              value={form.certification}
+              onChange={e => form.setField('certification', e.target.value)}
+              className="w-full h-full px-[13px] py-2 bg-white border border-[#e2e8f0] rounded-lg text-xs text-[#334155] appearance-none focus:outline-none focus:border-[#7f28bc]"
+            >
+              <option value="U">U</option>
+              <option value="U/A 7+">U/A 7+</option>
+              <option value="U/A 13+">U/A 13+</option>
+              <option value="A">A</option>
+            </select>
+            <img src="/icons/chevron-down-small.svg" alt="" className="absolute right-[13px] top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" />
           </div>
         </div>
       </div>

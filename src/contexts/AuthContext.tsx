@@ -21,7 +21,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!token) { setLoading(false); return }
     authApi.me()
       .then(res => setUser(res.user))
-      .catch(() => { localStorage.removeItem('admin_token'); localStorage.removeItem('admin_refresh_token') })
+      .catch((err) => {
+        const msg = err instanceof Error ? err.message : ''
+        if (msg.includes('401') || msg.includes('Session expired') || msg.includes('Unauthorized')) {
+          localStorage.removeItem('admin_token')
+          localStorage.removeItem('admin_refresh_token')
+        }
+      })
       .finally(() => setLoading(false))
   }, [])
 

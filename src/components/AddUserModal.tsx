@@ -1,33 +1,38 @@
 import { useState } from 'react'
 import { Button } from './shared'
+import { api } from '../lib/api'
 
 interface AddUserModalProps {
   isOpen: boolean
   onClose: () => void
-  onAdd: (user: {
-    name: string
-    email: string
-    password: string
-    status: 'Active' | 'Inactive'
-  }) => void
+  onSuccess: () => void
 }
 
-export default function AddUserModal({ isOpen, onClose, onAdd }: AddUserModalProps) {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    status: 'Active' as 'Active' | 'Inactive'
-  })
+export default function AddUserModal({ isOpen, onClose, onSuccess }: AddUserModalProps) {
+  const [formData, setFormData] = useState({ name: '', email: '', password: '', phone: '' })
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
   if (!isOpen) return null
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (formData.name && formData.email && formData.password) {
-      onAdd(formData)
-      setFormData({ name: '', email: '', password: '', status: 'Active' })
+    setError('')
+    setLoading(true)
+    try {
+      await api.post('/auth/register', {
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        phone: formData.phone || undefined,
+      })
+      setFormData({ name: '', email: '', password: '', phone: '' })
+      onSuccess()
       onClose()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create user')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -40,13 +45,11 @@ export default function AddUserModal({ isOpen, onClose, onAdd }: AddUserModalPro
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Full Name
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
             <input
               type="text"
               value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              onChange={e => setFormData({ ...formData, name: e.target.value })}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
               placeholder="Enter full name"
               required
@@ -54,13 +57,11 @@ export default function AddUserModal({ isOpen, onClose, onAdd }: AddUserModalPro
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email Address
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
             <input
               type="email"
               value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              onChange={e => setFormData({ ...formData, email: e.target.value })}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
               placeholder="Enter email"
               required
@@ -68,47 +69,35 @@ export default function AddUserModal({ isOpen, onClose, onAdd }: AddUserModalPro
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Password
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
             <input
               type="password"
               value={formData.password}
-              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+              onChange={e => setFormData({ ...formData, password: e.target.value })}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-              placeholder="Enter password"
+              placeholder="Minimum 8 characters"
+              minLength={8}
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Status
-            </label>
-            <select
-              value={formData.status}
-              onChange={(e) => setFormData({ ...formData, status: e.target.value as 'Active' | 'Inactive' })}
+            <label className="block text-sm font-medium text-gray-700 mb-1">Phone <span className="text-gray-400">(optional)</span></label>
+            <input
+              type="tel"
+              value={formData.phone}
+              onChange={e => setFormData({ ...formData, phone: e.target.value })}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-            >
-              <option value="Active">Active</option>
-              <option value="Inactive">Inactive</option>
-            </select>
+              placeholder="Enter phone number"
+            />
           </div>
 
-          <div className="flex gap-3 pt-4">
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={onClose}
-              className="flex-1"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              className="flex-1"
-            >
-              Add User
+          {error && <p className="text-red-600 text-sm">{error}</p>}
+
+          <div className="flex gap-3 pt-2">
+            <Button type="button" variant="secondary" onClick={onClose} className="flex-1">Cancel</Button>
+            <Button type="submit" className="flex-1" disabled={loading}>
+              {loading ? 'Creating…' : 'Add User'}
             </Button>
           </div>
         </form>

@@ -1,15 +1,18 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { ActionMenu, DeleteConfirmModal } from './shared'
 import ViewMandalModal from './ViewMandalModal'
+import { mandalsApi } from '../lib/api'
 import type { AdminOrg, Pagination } from '../lib/api'
 
+const DEFAULT_PAGINATION: Pagination = { page: 1, limit: 10, total: 0, totalPages: 0 }
+
 interface Props {
-  orgs: AdminOrg[]
-  loading: boolean
-  pagination: Pagination
-  onPageChange: (page: number) => void
-  onDelete: (id: string) => void
-  onEdit: (org: AdminOrg) => void
+  orgs?: AdminOrg[]
+  loading?: boolean
+  pagination?: Pagination
+  onPageChange?: (page: number) => void
+  onDelete?: (id: string) => void
+  onEdit?: (org: AdminOrg) => void
 }
 
 function formatDate(d?: string) {
@@ -23,12 +26,31 @@ const STATUS_STYLES: Record<string, string> = {
   inactive: 'bg-[#fef2f2] text-[#ef4444]',
 }
 
-export default function MandalsTable({ orgs, loading, pagination, onPageChange, onDelete, onEdit }: Props) {
+export default function MandalsTable({ orgs: extOrgs, loading: extLoading, pagination: extPagination, onPageChange: extOnPageChange, onDelete: extOnDelete, onEdit: extOnEdit }: Props) {
+  const [internalOrgs, setInternalOrgs] = useState<AdminOrg[]>([])
+  const [internalLoading, setInternalLoading] = useState(extOrgs === undefined)
+  const [internalPagination, setInternalPagination] = useState<Pagination>(DEFAULT_PAGINATION)
   const [openMenuId, setOpenMenuId] = useState<string | null>(null)
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
   const [toDelete, setToDelete] = useState<AdminOrg | null>(null)
   const [viewModalOpen, setViewModalOpen] = useState(false)
   const [toView, setToView] = useState<AdminOrg | null>(null)
+
+  useEffect(() => {
+    if (extOrgs !== undefined) return
+    setInternalLoading(true)
+    mandalsApi.list({ page: 1, limit: 10 }).then(res => {
+      setInternalOrgs(res.data || [])
+      if (res.pagination) setInternalPagination(res.pagination)
+    }).catch(() => {}).finally(() => setInternalLoading(false))
+  }, [extOrgs])
+
+  const orgs = extOrgs ?? internalOrgs
+  const loading = extLoading ?? internalLoading
+  const pagination = extPagination ?? internalPagination
+  const onPageChange = extOnPageChange ?? (() => {})
+  const onDelete = extOnDelete ?? (() => {})
+  const onEdit = extOnEdit ?? (() => {})
 
   const start = (pagination.page - 1) * pagination.limit + 1
   const end = Math.min(pagination.page * pagination.limit, pagination.total)

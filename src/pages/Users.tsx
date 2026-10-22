@@ -16,7 +16,7 @@ export default function Users() {
   const [searchQuery, setSearchQuery] = useState('')
   const [activeTab, setActiveTab] = useState<'active' | 'inactive'>('active')
   const [stats, setStats] = useState({ total: 0, active: 0 })
-  const searchTimeout = useRef<ReturnType<typeof setTimeout>>()
+  const searchTimeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
   const fetchUsers = async (page: number, limit: number, search: string, tab: 'active' | 'inactive') => {
     setLoading(true)

@@ -1,4 +1,5 @@
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useAuth } from '../contexts/AuthContext'
 
 const menuItems = [
   { icon: '/icons/dashboard.svg', label: 'Dashboard', path: '/' },
@@ -14,10 +15,10 @@ const menuItems = [
   { icon: '/icons/settings.svg', label: 'Settings', path: '/settings' },
 ]
 
-import { handleClick } from '../utils/mockHandlers'
-
 export default function Sidebar() {
   const location = useLocation()
+  const navigate = useNavigate()
+  const { logout } = useAuth()
 
   return (
     <aside className="w-[260px] h-screen bg-white border-r border-[#f1f5f9] flex flex-col">
@@ -55,7 +56,7 @@ export default function Sidebar() {
         })}
 
         {/* Logout */}
-        <button onClick={() => handleClick('Logout')} className="w-full flex items-center gap-2 px-4 py-2.5 rounded text-[#ff383c] hover:bg-red-50 transition-colors">
+        <button onClick={async () => { await logout(); navigate('/login') }} className="w-full flex items-center gap-2 px-4 py-2.5 rounded text-[#ff383c] hover:bg-red-50 transition-colors">
           <div className="w-4 h-4 flex items-center justify-center flex-shrink-0">
             <img
               src="/icons/logout.svg"

@@ -1,38 +1,44 @@
 import { MetricCard } from './shared'
 
-export default function NotificationMetrics() {
+interface NotifStats { total: number; read: number; unread: number }
+
+interface Props { stats: NotifStats | null }
+
+export default function NotificationMetrics({ stats }: Props) {
+  const readRate = stats && stats.total > 0 ? ((stats.read / stats.total) * 100).toFixed(1) : '0'
+
   const metrics = [
     {
-      title: 'Total Notifications',
-      value: '124',
-      subtitle: '+18% this month',
+      title: 'Total Sent',
+      value: stats ? String(stats.total) : '—',
+      subtitle: 'All notifications',
       icon: '/icons/bell-notification-icon.svg',
       bgColor: 'bg-[#faf5ff]',
-      textColor: 'text-[#059669]',
-      showArrow: true,
-    },
-    {
-      title: 'Delivered',
-      value: '102',
-      subtitle: '82.3% delivery rate',
-      icon: '/icons/check-circle-icon.svg',
-      bgColor: 'bg-[#ecfdf5]',
-      textColor: 'text-[#64748b]',
+      textColor: 'text-[#7f28bc]',
       showArrow: false,
     },
     {
       title: 'Read',
-      value: '14',
-      subtitle: '11.3% read rate',
+      value: stats ? String(stats.read) : '—',
+      subtitle: `${readRate}% read rate`,
       icon: '/icons/eye-read-icon.svg',
+      bgColor: 'bg-[#ecfdf5]',
+      textColor: 'text-[#059669]',
+      showArrow: false,
+    },
+    {
+      title: 'Unread',
+      value: stats ? String(stats.unread) : '—',
+      subtitle: 'Pending reads',
+      icon: '/icons/bell-notification-icon.svg',
       bgColor: 'bg-[#eff6ff]',
       textColor: 'text-[#64748b]',
       showArrow: false,
     },
     {
       title: 'Failed',
-      value: '8',
-      subtitle: '6.4% failed rate',
+      value: '—',
+      subtitle: 'Not tracked yet',
       icon: '/icons/x-circle-icon.svg',
       bgColor: 'bg-[#fef2f2]',
       textColor: 'text-[#64748b]',

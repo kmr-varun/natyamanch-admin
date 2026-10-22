@@ -1,35 +1,58 @@
-export default function AnalyticsMetrics() {
+interface DashStats {
+  users: { total: number; today: number; last7days: number; active: number }
+  revenue: { total: number | null; today: number | null; last7days: number | null; last30days: number | null }
+  videos: { total: number; published: number; total_views: number | null }
+  orders: { total: number; completed: number; pending: number; today: number }
+}
+
+interface Props {
+  stats: DashStats | null
+}
+
+const fmtNum = (n: number | null | undefined) => {
+  if (n == null) return '—'
+  if (n >= 10000000) return `${(n / 10000000).toFixed(1)}Cr`
+  if (n >= 100000) return `${(n / 100000).toFixed(1)}L`
+  if (n >= 1000) return `${(n / 1000).toFixed(1)}K`
+  return String(n)
+}
+
+const fmtInr = (n: number | null | undefined) => {
+  if (n == null) return '—'
+  if (n >= 10000000) return `₹${(n / 10000000).toFixed(1)}Cr`
+  if (n >= 100000) return `₹${(n / 100000).toFixed(1)}L`
+  if (n >= 1000) return `₹${(n / 1000).toFixed(1)}K`
+  return `₹${n}`
+}
+
+export default function AnalyticsMetrics({ stats }: Props) {
   const metrics = [
     {
       title: 'Total Users',
-      value: '12,482',
-      growth: '+12%',
-      period: 'vs last 30 days',
+      value: stats ? fmtNum(stats.users.total) : '—',
+      sub: stats ? `+${stats.users.last7days} this week` : 'Loading...',
       icon: '/icons/drama-masks-icon.svg',
       bgColor: 'bg-[#faf5ff]',
     },
     {
       title: 'Total Video Views',
-      value: '28,930',
-      growth: '+18%',
-      period: 'vs last 30 days',
+      value: stats ? fmtNum(stats.videos.total_views) : '—',
+      sub: stats ? `${stats.videos.published} published` : 'Loading...',
       icon: '/icons/play-circle-icon.svg',
       bgColor: 'bg-[#ecfdf5]',
     },
     {
       title: 'Total Orders',
-      value: '1,248',
-      growth: '+22%',
-      period: 'vs last 30 days',
+      value: stats ? fmtNum(stats.orders.total) : '—',
+      sub: stats ? `${stats.orders.today} today` : 'Loading...',
       icon: '/icons/cart-bg-icon.svg',
       bgColor: 'bg-transparent',
       isImage: true,
     },
     {
       title: 'Total Revenue',
-      value: '₹4,98,320',
-      growth: '+20%',
-      period: 'vs last 30 days',
+      value: stats ? fmtInr(stats.revenue.total) : '—',
+      sub: stats ? `${fmtInr(stats.revenue.last30days)} this month` : 'Loading...',
       icon: '₹',
       bgColor: 'bg-[#f3e8ff]',
       isText: true,
@@ -52,16 +75,10 @@ export default function AnalyticsMetrics() {
               <img src={metric.icon as string} alt="" className="w-6 h-6" />
             )}
           </div>
-
           <div className="flex flex-col gap-0.5 pt-[1.5px]">
             <span className="text-xs font-medium text-[#64748b] leading-4">{metric.title}</span>
-            <div className="flex flex-col pt-0.5">
-              <span className="text-xl font-bold text-[#0f172a] leading-[25px]">{metric.value}</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <span className="text-[11px] font-medium text-[#059669] leading-[16.5px]">{metric.growth}</span>
-              <span className="text-[11px] text-[#94a3b8] leading-[16.5px]">{metric.period}</span>
-            </div>
+            <span className="text-xl font-bold text-[#0f172a] leading-[25px]">{metric.value}</span>
+            <span className="text-[11px] text-[#94a3b8] leading-[16.5px]">{metric.sub}</span>
           </div>
         </div>
       ))}

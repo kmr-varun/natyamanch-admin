@@ -8,6 +8,7 @@ interface ButtonProps {
   onClick?: () => void
   type?: 'button' | 'submit' | 'reset'
   className?: string
+  disabled?: boolean
 }
 
 export default function Button({
@@ -18,6 +19,7 @@ export default function Button({
   onClick,
   type = 'button',
   className = '',
+  disabled = false,
 }: ButtonProps) {
   const baseStyles = 'px-4 py-2 rounded-lg text-xs font-semibold leading-4 transition-colors flex items-center gap-1.5'
 
@@ -31,7 +33,8 @@ export default function Button({
     <button
       type={type}
       onClick={onClick}
-      className={`${baseStyles} ${variantStyles[variant]} ${className}`}
+      disabled={disabled}
+      className={`${baseStyles} ${variantStyles[variant]} ${className} disabled:opacity-60 disabled:cursor-not-allowed`}
     >
       {icon && iconPosition === 'left' && (
         <img src={icon} alt="" className="w-[14px] h-[14px]" />

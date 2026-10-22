@@ -1,168 +1,130 @@
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
 
-export default function AnalyticsTrendCharts() {
-  // Mock data for the trend chart
-  const trendData = [
-    { date: '15 Aug', views: 1200, revenue: 45000 },
-    { date: '18 Aug', views: 2500, revenue: 65000 },
-    { date: '21 Aug', views: 1800, revenue: 52000 },
-    { date: '24 Aug', views: 3200, revenue: 82000 },
-    { date: '27 Aug', views: 2100, revenue: 58000 },
-    { date: '30 Aug', views: 3800, revenue: 95000 },
-    { date: '02 Sep', views: 2800, revenue: 72000 },
-    { date: '05 Sep', views: 3400, revenue: 85000 },
-    { date: '08 Sep', views: 2200, revenue: 62000 },
-    { date: '11 Sep', views: 3600, revenue: 88000 },
-    { date: '14 Sep', views: 3000, revenue: 78000 },
-  ]
+interface RevenuePoint { date: string; orders: number; revenue: number }
+interface OrgStats { total: number; active: number; expired: number; inactive: number; expiring_soon: number }
+
+interface Props {
+  trendData: RevenuePoint[]
+  orgStats: OrgStats | null
+  days: number
+  onDaysChange: (days: number) => void
+}
+
+const PERIOD_OPTIONS = [
+  { label: '7D', days: 7 },
+  { label: '30D', days: 30 },
+  { label: '90D', days: 90 },
+]
+
+const fmtDate = (d: string) => {
+  const date = new Date(d)
+  return `${date.getDate()} ${date.toLocaleString('en', { month: 'short' })}`
+}
+
+export default function AnalyticsTrendCharts({ trendData, orgStats, days, onDaysChange }: Props) {
+  const chartData = trendData.map(d => ({ ...d, date: fmtDate(d.date) }))
+
+  const donutData = orgStats
+    ? [
+        { name: 'Active', value: orgStats.active, color: '#7f28bc' },
+        { name: 'Expiring', value: orgStats.expiring_soon, color: '#f97316' },
+        { name: 'Expired', value: orgStats.expired, color: '#ec4899' },
+        { name: 'Inactive', value: orgStats.inactive, color: '#3b82f6' },
+      ].filter(d => d.value > 0)
+    : []
 
   return (
     <div className="grid grid-cols-3 gap-5">
-      {/* Left: Views & Revenue Trend - 2 columns wide */}
+      {/* Left: Orders & Revenue Trend */}
       <div className="col-span-2 bg-white border border-[#e2e8f0] rounded-xl shadow-sm p-5 h-[321px]">
-        {/* Header */}
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-semibold text-[#1e293b] leading-5">Views & Revenue Trend</h3>
-          <div className="flex items-center gap-4">
+          <h3 className="text-sm font-semibold text-[#1e293b] leading-5">Orders & Revenue Trend</h3>
+          <div className="flex items-center gap-3">
             <div className="flex items-center gap-1.5">
-              <div className="w-2.5 h-2.5 bg-[#7f28bc] rounded-full"></div>
-              <span className="text-xs font-medium text-[#475569] leading-4">Video Views</span>
+              <div className="w-2.5 h-2.5 bg-[#7f28bc] rounded-full" />
+              <span className="text-xs font-medium text-[#475569] leading-4">Orders</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <div className="w-2.5 h-2.5 bg-[#ec4899] rounded-full"></div>
-              <span className="text-xs font-medium text-[#475569] leading-4">Revenue (INR)</span>
+              <div className="w-2.5 h-2.5 bg-[#ec4899] rounded-full" />
+              <span className="text-xs font-medium text-[#475569] leading-4">Revenue (₹)</span>
+            </div>
+            <div className="flex gap-1 bg-[#f8f2fa] p-0.5 rounded">
+              {PERIOD_OPTIONS.map(opt => (
+                <button
+                  key={opt.days}
+                  onClick={() => onDaysChange(opt.days)}
+                  className={`px-2 py-0.5 rounded text-[10px] font-medium transition-colors ${
+                    days === opt.days ? 'bg-[#7f28bc] text-white' : 'text-[#64748b] hover:bg-[#f0e6f3]'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
             </div>
           </div>
         </div>
 
-        {/* Chart Area */}
         <div className="h-[250px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={trendData} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="0" stroke="#e2e8f0" vertical={false} />
-              <XAxis
-                dataKey="date"
-                tick={{ fill: '#94a3b8', fontSize: 10 }}
-                axisLine={false}
-                tickLine={false}
-              />
-              <YAxis
-                yAxisId="left"
-                tick={{ fill: '#94a3b8', fontSize: 11 }}
-                axisLine={false}
-                tickLine={false}
-                tickFormatter={(value) => `${value / 1000}K`}
-              />
-              <YAxis
-                yAxisId="right"
-                orientation="right"
-                tick={{ fill: '#94a3b8', fontSize: 11 }}
-                axisLine={false}
-                tickLine={false}
-                tickFormatter={(value) => `₹${value / 1000}K`}
-              />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: '#fff',
-                  border: '1px solid #e2e8f0',
-                  borderRadius: '8px',
-                  fontSize: '12px'
-                }}
-              />
-              <Line
-                yAxisId="left"
-                type="monotone"
-                dataKey="views"
-                stroke="#7f28bc"
-                strokeWidth={3}
-                dot={false}
-                activeDot={{ r: 6 }}
-              />
-              <Line
-                yAxisId="right"
-                type="monotone"
-                dataKey="revenue"
-                stroke="#ec4899"
-                strokeWidth={3}
-                dot={false}
-                activeDot={{ r: 6 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
+          {chartData.length === 0 ? (
+            <div className="h-full flex items-center justify-center text-sm text-[#94a3b8]">No data for this period</div>
+          ) : (
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={chartData} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="0" stroke="#e2e8f0" vertical={false} />
+                <XAxis dataKey="date" tick={{ fill: '#94a3b8', fontSize: 10 }} axisLine={false} tickLine={false} />
+                <YAxis yAxisId="left" tick={{ fill: '#94a3b8', fontSize: 11 }} axisLine={false} tickLine={false} />
+                <YAxis yAxisId="right" orientation="right" tick={{ fill: '#94a3b8', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={v => `₹${v >= 1000 ? `${(v / 1000).toFixed(0)}K` : v}`} />
+                <Tooltip contentStyle={{ backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '12px' }} formatter={(val, name) => [name === 'revenue' ? `₹${val}` : val, name === 'revenue' ? 'Revenue' : 'Orders']} />
+                <Line yAxisId="left" type="monotone" dataKey="orders" stroke="#7f28bc" strokeWidth={3} dot={false} activeDot={{ r: 6 }} />
+                <Line yAxisId="right" type="monotone" dataKey="revenue" stroke="#ec4899" strokeWidth={3} dot={false} activeDot={{ r: 6 }} />
+              </LineChart>
+            </ResponsiveContainer>
+          )}
         </div>
       </div>
 
-      {/* Right: Revenue by Plan Type - 1 column wide */}
+      {/* Right: Organization Status */}
       <div className="bg-white border border-[#e2e8f0] rounded-xl shadow-sm p-[21px] flex flex-col justify-between">
-        <h3 className="text-sm font-semibold text-[#1e293b] leading-5 pb-2">Revenue by Plan Type</h3>
+        <h3 className="text-sm font-semibold text-[#1e293b] leading-5 pb-2">Organization Status</h3>
 
-        <div className="flex items-center justify-between py-[53.5px]">
-          {/* Donut Chart */}
-          <div className="w-36 h-36 flex-shrink-0">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={[
-                    { name: 'Individual Videos', value: 42 },
-                    { name: 'Monthly Pass', value: 26 },
-                    { name: 'Mandal Plans', value: 20 },
-                    { name: 'Other', value: 12 },
-                  ]}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={40}
-                  outerRadius={70}
-                  paddingAngle={0}
-                  dataKey="value"
-                >
-                  <Cell fill="#7f28bc" />
-                  <Cell fill="#f97316" />
-                  <Cell fill="#3b82f6" />
-                  <Cell fill="#ec4899" />
-                </Pie>
-              </PieChart>
-            </ResponsiveContainer>
-            {/* Center label */}
-            <div className="relative -mt-32 flex items-center justify-center">
-              <div className="flex flex-col items-center justify-center">
-                <span className="text-xs font-bold text-[#0f172a] leading-3">₹4,98,320</span>
-                <span className="text-[9px] font-medium text-[#94a3b8] leading-[13.5px] pt-0.5">Total Revenue</span>
+        {orgStats ? (
+          <div className="flex items-center justify-between py-[53.5px]">
+            <div className="w-36 h-36 flex-shrink-0">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie data={donutData} cx="50%" cy="50%" innerRadius={40} outerRadius={70} paddingAngle={0} dataKey="value">
+                    {donutData.map((d, i) => <Cell key={i} fill={d.color} />)}
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="relative -mt-32 flex items-center justify-center">
+                <div className="flex flex-col items-center justify-center">
+                  <span className="text-xs font-bold text-[#0f172a] leading-3">{orgStats.total}</span>
+                  <span className="text-[9px] font-medium text-[#94a3b8] leading-[13.5px] pt-0.5">Total Orgs</span>
+                </div>
               </div>
+            </div>
+
+            <div className="flex-1 flex flex-col gap-2 pr-1">
+              {[
+                { label: 'Active', value: orgStats.active, color: 'bg-[#7f28bc]' },
+                { label: 'Expiring', value: orgStats.expiring_soon, color: 'bg-[#f97316]' },
+                { label: 'Expired', value: orgStats.expired, color: 'bg-[#ec4899]' },
+                { label: 'Inactive', value: orgStats.inactive, color: 'bg-[#3b82f6]' },
+              ].map((item, i) => (
+                <div key={i} className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className={`w-2.5 h-2.5 ${item.color} rounded-full`} />
+                    <span className="text-[11px] font-medium text-[#475569] leading-4">{item.label}</span>
+                  </div>
+                  <span className="text-xs font-bold text-[#0f172a] leading-4">{item.value}</span>
+                </div>
+              ))}
             </div>
           </div>
-
-          {/* Legends */}
-          <div className="flex-1 flex flex-col gap-2 pr-1">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-[7.34px] h-2.5 bg-[#7f28bc] rounded-full"></div>
-                <span className="text-[11px] font-medium text-[#475569] leading-4">Individual<br />Videos</span>
-              </div>
-              <span className="text-xs font-bold text-[#0f172a] leading-4">42%</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-[9.13px] h-2.5 bg-[#f97316] rounded-full"></div>
-                <span className="text-[11px] font-medium text-[#475569] leading-4">Monthly<br />Pass</span>
-              </div>
-              <span className="text-xs font-bold text-[#0f172a] leading-4">26%</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-[9.16px] h-2.5 bg-[#3b82f6] rounded-full"></div>
-                <span className="text-[11px] font-medium text-[#475569] leading-4">Mandal<br />Plans</span>
-              </div>
-              <span className="text-xs font-bold text-[#0f172a] leading-4">20%</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-2.5 h-2.5 bg-[#ec4899] rounded-full"></div>
-                <span className="text-[11px] font-medium text-[#475569] leading-4">Other</span>
-              </div>
-              <span className="text-xs font-bold text-[#0f172a] leading-4">12%</span>
-            </div>
-          </div>
-        </div>
+        ) : (
+          <div className="flex-1 flex items-center justify-center text-sm text-[#94a3b8]">Loading...</div>
+        )}
       </div>
     </div>
   )

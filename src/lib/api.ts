@@ -93,9 +93,9 @@ export const analyticsApi = {
     videos: { total: number; published: number; total_views: number | null }
     orders: { total: number; completed: number; pending: number; today: number }
   }>('/admin/analytics/dashboard'),
-  revenueChart: (days = 30) => api.get(`/admin/analytics/revenue/chart?days=${days}`),
-  topVideos: () => api.get('/admin/analytics/videos/top'),
-  userRegistrations: (days = 30) => api.get(`/admin/analytics/users/registrations?days=${days}`),
+  revenueChart: (days = 30) => api.get<{ success: boolean; data: { date: string; orders: number; revenue: number }[] }>(`/admin/analytics/revenue/chart?days=${days}`),
+  topVideos: () => api.get<{ success: boolean; videos: { id: string; title: string; thumbnail_url?: string; view_count: number; price_inr: number; purchase_count: number; revenue: number }[] }>('/admin/analytics/videos/top'),
+  userRegistrations: (days = 30) => api.get<{ success: boolean; data: { date: string; registrations: number }[] }>(`/admin/analytics/users/registrations?days=${days}`),
 }
 
 // Videos
@@ -221,12 +221,14 @@ export const contentApi = {
 
 // Notifications
 export const notificationsApi = {
-  list: (params?: Record<string, string>) => {
-    const q = params ? '?' + new URLSearchParams(params).toString() : ''
+  list: (params?: Record<string, string | number>) => {
+    const q = params ? '?' + new URLSearchParams(Object.fromEntries(Object.entries(params).map(([k, v]) => [k, String(v)]))).toString() : ''
     return api.get<{ success: boolean; data: AdminNotification[]; pagination: Pagination }>(`/admin/notifications${q}`)
   },
+  stats: () => api.get<{ success: boolean; stats: { total: number; read: number; unread: number } }>('/admin/notifications/stats'),
   broadcast: (body: { title: string; message: string; type?: string; userId?: string }) =>
     api.post<{ success: boolean; sent: number }>('/admin/notifications/broadcast', body),
+  delete: (id: string) => api.delete<{ success: boolean }>(`/admin/notifications/${id}`),
 }
 
 // Settings
